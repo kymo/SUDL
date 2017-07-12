@@ -9,6 +9,8 @@
 
 namespace sub_dl {
 
+#define uniform_plus_minus_one ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 )  //均匀随机分布
+
 template <typename T>
 void alloc_matrix(T** &_val, int r, int c) {
     _val = new T*[r];
@@ -57,7 +59,8 @@ public:
         srand((unsigned) time(NULL));
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
-                _val[i][j] = (rand() % 100) / 1000.0;
+                _val[i][j] = (rand() % 100) / 100.0;
+				//_val[i][j] = uniform_plus_minus_one;
             }
         }
     }
@@ -92,7 +95,8 @@ public:
     }
     
     void _display(const std::string& tips) const {
-        std::cout << tips << std::endl;
+	//	return ;
+		std::cout << tips << std::endl;
         _display();
     }
 
@@ -146,6 +150,40 @@ public:
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
                 t_matrix[i][j] = _val[i][j] * rate;
+            }
+        }
+        return t_matrix;
+    }
+    
+	Matrix<T> operator + (T val) const {
+        Matrix<T> t_matrix(_x_dim, _y_dim);
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                t_matrix[i][j] = _val[i][j] + val;
+            }
+        }
+        return t_matrix;
+    }
+	
+	Matrix<T> operator - (T val) const {
+        Matrix<T> t_matrix(_x_dim, _y_dim);
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                t_matrix[i][j] = _val[i][j] - val;
+            }
+        }
+        return t_matrix;
+    }
+	
+	Matrix<T> operator / (T val) const {
+		if (val == 0.0) {
+			std::cerr << "divided by error!" << std::endl;
+			exit(1);
+		}
+        Matrix<T> t_matrix(_x_dim, _y_dim);
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                t_matrix[i][j] = _val[i][j] / val;
             }
         }
         return t_matrix;

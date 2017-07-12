@@ -125,15 +125,13 @@ float RNN::_forward(const std::vector<int>& sample_indexes, int epoch) {
             matrix_float output_vals = sigmoid_m(o_vals);
             _output_values.set_row(t - 1, output_vals);
             _hidden_values.set_row(t - 1, pre_hidden_vals);
-            for (int k = 0; k < _output_dim; k++) {
-                cost += 0.5 * (label[t - 1][k] - output_vals[0][k]) * (label[t - 1][k] - output_vals[0][k]);
-            }
-        }
-            
+        } 
         val1 = merge(label);
         val2 = merge(_output_values);
         float eta = -0.1;
         // calc error
+        matrix_float diff_val = label - _output_values;
+        cost += diff_val.dot_mul(diff_val).sum() * 0.5;
         // error back propogation
         matrix_float nxt_hidden_error(1, _hidden_dim);
         matrix_float delta_hidden_output_weights(_hidden_output_weights._x_dim, 

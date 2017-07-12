@@ -59,8 +59,7 @@ public:
         srand((unsigned) time(NULL));
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
-                _val[i][j] = (rand() % 100) / 100.0;
-				//_val[i][j] = uniform_plus_minus_one;
+                _val[i][j] = uniform_plus_minus_one;
             }
         }
     }
@@ -95,8 +94,8 @@ public:
     }
     
     void _display(const std::string& tips) const {
-	//	return ;
-		std::cout << tips << std::endl;
+    //    return ;
+        std::cout << tips << std::endl;
         _display();
     }
 
@@ -130,7 +129,7 @@ public:
         return t_matrix;
     }
     
-    Matrix<T> operator - (const Matrix<T>& m) {
+    Matrix<T> operator - (const Matrix<T>& m) const {
         if (m._x_dim != _x_dim || m._y_dim != _y_dim) {
             std::cerr << "Error when minus two matrix[size not match!]" << _x_dim << " " << _y_dim << 
                 " vs " << m._x_dim << " " << m._y_dim << std::endl;
@@ -155,7 +154,7 @@ public:
         return t_matrix;
     }
     
-	Matrix<T> operator + (T val) const {
+    Matrix<T> operator + (T val) const {
         Matrix<T> t_matrix(_x_dim, _y_dim);
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
@@ -164,8 +163,8 @@ public:
         }
         return t_matrix;
     }
-	
-	Matrix<T> operator - (T val) const {
+    
+    Matrix<T> operator - (T val) const {
         Matrix<T> t_matrix(_x_dim, _y_dim);
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
@@ -174,12 +173,12 @@ public:
         }
         return t_matrix;
     }
-	
-	Matrix<T> operator / (T val) const {
-		if (val == 0.0) {
-			std::cerr << "divided by error!" << std::endl;
-			exit(1);
-		}
+    
+    Matrix<T> operator / (T val) const {
+        if (val == 0.0) {
+            std::cerr << "divided by error!" << std::endl;
+            exit(1);
+        }
         Matrix<T> t_matrix(_x_dim, _y_dim);
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {

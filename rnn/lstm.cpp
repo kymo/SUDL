@@ -162,15 +162,14 @@ float LSTM::_forward(const std::vector<int>& sample_indexes, int epoch) {
             matrix_float o_output = sigmoid_m(xt * _og_input_weights 
                 + pre_hidden_vals * _og_hidden_weights + _og_bias);
             // c^~(t) = sigmoid(xt * _cell_input_weights + h(t-1) * _cell_hidden_weights) + bias
-            matrix_float cell_new_val = sigmoid_m(xt * _cell_input_weights 
+            matrix_float cell_new_val = tanh_m(xt * _cell_input_weights 
                 + pre_hidden_vals * _cell_hidden_weights + _cell_bias);
             // ct = c(t-1) * fo + c^~(t) * io
             matrix_float cell_output = cell_new_val.dot_mul(i_output) + pre_cell_vals.dot_mul(f_output);
-            
             pre_cell_vals = cell_output;
             pre_hidden_vals = tanh_m(cell_val).dot_mul(o_output);
-
-            matrix_float o_val = sigmoid_m(pre_cell_vals * _hidden_output_weights + _output_bias);
+            //
+			matrix_float o_val = sigmoid_m(pre_cell_vals * _hidden_output_weights + _output_bias);
 
             _cell_values.set_row(t, pre_cell_vals);
             _output_values.set_row(t, o_val);
@@ -216,6 +215,11 @@ float LSTM::_forward(const std::vector<int>& sample_indexes, int epoch) {
         matrix_float og_error(1, _hidden_dim);
         matrix_float new_cell_error(1, _hidden_dim);
 
+		matrix_float nxt_fg_error(1, _hidden_dim);
+		matrix_float nxt_ig_error(1, _hidden_dim);
+		matrix_float nxt_og_error(1, _hidden_dim);
+		matrix_float nxt_new_cell_error(1, _hidden_dim);
+
         matrix_float nxt_cell_mid_error(1, _hidden_dim);
 
         for (int t = time_step_cnt - 1; t >= 0; t--) {
@@ -227,9 +231,15 @@ float LSTM::_forward(const std::vector<int>& sample_indexes, int epoch) {
             // before get the output gate/input gate/forget gate error
             // the mid error value should be calculated first
             // cell_mid_error and hidden_mid_error
-            matrix_float cell_mid_error;
+            
+			matrix_float hidden_mid_error = output_error * _hidden_output_weights._T() \
+				+ nxt_fg_error * _fg_hidden_weights._T() \
+				+ nxt_ig_error * _ig_hidden_weights._T() \
+				+ nxt_og_error * _og_hidden_weights._T() \
+				+ nxt_new_cell_error * _cell_hidden_weights._T();
 
-            matrix_float hidden_mid_error;
+            matrix_float cell_mid_error = hidden_mid_error.dot_mul(_og_values._R(t)).dot_mul(tanh_m_diff(_cell_values._R(t))) 
+				+ nxt_cell_mid_error.dot_mul(_fg_values._R(t));
 
             // output gate error
             og_error = hidden_mid_error.dot_mul(tanh_m(_cell_values._R(t))).dot_mul(sigmoid_m_diff(_og_values._R(t)));
@@ -241,7 +251,7 @@ float LSTM::_forward(const std::vector<int>& sample_indexes, int epoch) {
                 fg_error = cell_mid_error.dot_mul(_cell_values._R(t - 1)).dot_mul(sigmoid_m_diff(_fg_values._R(t)));
             }
             // new cell error
-            new_cell_error = cell_mid_error.dot_mul(_ig_values._R(t)).dot_mul(sigmoid_m_diff(_cell_new_values._R(t)));
+            new_cell_error = cell_mid_error.dot_mul(_ig_values._R(t)).dot_mul(tanh_m_diff(_cell_new_values._R(t)));
             // add delta
             const Matrix& xt_trans = feature._R(t)._T();
             _delta_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error); 
@@ -262,6 +272,10 @@ float LSTM::_forward(const std::vector<int>& sample_indexes, int epoch) {
             _fg_delta_bias.add(fg_error);
             _cell_delta_bias.add(new_cell_error);
 
+			nxt_ig_error = ig_error;
+			nxt_og_error = og_error;
+			nxt_fg_error = fg_error;
+			nxt_new_cell_error = new_cell_error;
         }
         // weight update
         

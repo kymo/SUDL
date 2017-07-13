@@ -101,87 +101,100 @@ RNN::RNN(int feature_dim, int hidden_dim, int output_dim) :
     _output_bias.assign_val();
 }
 
-float RNN::_forward(const std::vector<int>& sample_indexes, int epoch) {
+void RNN::_forward(const matrix_float& feature,
+    matrix_float& hidden_values, 
+    matrix_float& output_values) {
+        
+    int time_step_cnt = feature._x_dim;
+    _output_values.resize(time_step_cnt, _output_dim);
+    _hidden_values.resize(time_step_cnt, _hidden_dim);    
+    matrix_float pre_hidden_vals(1, _hidden_dim);
+
+    for (int t = 0; t < time_step_cnt; t++) {
+        // h_t
+        const matrix_float& xt = feature._R(t);
+        // net_h_t = xt * v + h_{t-1} * u + b_h
+        matrix_float net_h_vals = xt * _input_hidden_weights + pre_hidden_vals * _hidden_weights + _hidden_bias;
+        // out_h_t = sigmoid(net_h_t)
+        pre_hidden_vals = tanh_m(net_h_vals);
+        // output_h_t = out_h_t * W + b_o
+        matrix_float o_vals = pre_hidden_vals * _hidden_output_weights + _output_bias;
+        matrix_float output_vals = sigmoid_m(o_vals);
+        output_values.set_row(t, output_vals);
+        hidden_values.set_row(t, pre_hidden_vals);
+    } 
+}
+
+void RNN::_backward(const matrix_float& feature,
+    const matrix_float& label,
+    const matrix_float& hidden_values, 
+    const matrix_float& output_values) {
+
+    int time_step_cnt = label._x_dim;
+    // error back propogation
+    matrix_float nxt_hidden_error(1, _hidden_dim);
+    matrix_float delta_hidden_output_weights(_hidden_output_weights._x_dim, 
+        _hidden_output_weights._y_dim);
+    matrix_float delta_input_hidden_weights(_input_hidden_weights._x_dim,
+        _input_hidden_weights._y_dim);
+    matrix_float delta_hidden_weights(_hidden_weights._x_dim,
+        _hidden_weights._y_dim);
+    matrix_float delta_hidden_bias(_hidden_bias._x_dim, _hidden_bias._y_dim);
+    matrix_float delta_output_bias(_output_bias._x_dim, _output_bias._y_dim);
+    for (int t = time_step_cnt - 1; t >= 0; t--) {
+        // output_error = (o_t - y_t) * f'(o_t)
+        matrix_float output_error = (output_values._R(t) - label._R(t)) \
+            .dot_mul(sigmoid_m_diff(output_values._R(t)));
+        // hidden_error = 
+        // (output_error * V_jk + nxt_hidden_error * U_jr) dot_multiply f'(hidden_values[t-1])
+        matrix_float hidden_error = (output_error * _hidden_output_weights._T() + 
+            nxt_hidden_error * _hidden_weights._T()) \
+            .dot_mul(tanh_m_diff(hidden_values._R(t)));
+        //_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error * eta);
+        // delta_V = delta_V + hidden_values[t-1]^T * output_error
+        delta_hidden_output_weights.add(hidden_values._R(t)._T() * 
+            output_error);
+        //_input_hidden_weights.add(feature._R(t)._T() * hidden_error * eta);
+        delta_input_hidden_weights.add(feature._R(t)._T() * hidden_error);
+        if (t > 0) {
+            //_hidden_weights.add(_hidden_values._R(t - 1)._T() * hidden_error * eta); 
+            delta_hidden_weights.add(hidden_values._R(t - 1)._T() * hidden_error);
+        }
+        delta_hidden_bias.add(hidden_error);
+        delta_output_bias.add(output_error);
+        nxt_hidden_error = hidden_error; 
+    }
+    // weight update
+    _hidden_output_weights.add(delta_hidden_output_weights * _eta);
+    _input_hidden_weights.add(delta_input_hidden_weights * _eta);
+    _hidden_weights.add(delta_hidden_weights * _eta);
+    _hidden_bias.add(delta_hidden_bias * _eta);
+    _output_bias.add(delta_output_bias * _eta);
+    gradident_clip(_hidden_output_weights);
+    gradident_clip(_input_hidden_weights);
+    gradident_clip(_hidden_weights);
+    gradident_clip(_hidden_bias);
+    gradident_clip(_output_bias);
+}
+
+
+float RNN::_epoch(const std::vector<int>& sample_indexes, int epoch) {
 
     float cost = 0.0;
     int val1, val2;
     for (size_t i = 0; i < sample_indexes.size(); i++) {
         const matrix_float& feature = _train_x_features[sample_indexes[i]];
         const matrix_float& label = _train_y_labels[sample_indexes[i]];
-        int time_step_cnt = feature._x_dim;
-        _output_values.resize(time_step_cnt, _output_dim);
-        _hidden_values.resize(time_step_cnt, _hidden_dim);
-        
-        matrix_float pre_hidden_vals(1, _hidden_dim);
-        for (int t = 0; t < time_step_cnt; t++) {
-            // h_t
-            const matrix_float& xt = feature._R(t);
-            // net_h_t = xt * v + h_{t-1} * u + b_h
-            matrix_float net_h_vals = xt * _input_hidden_weights + pre_hidden_vals * _hidden_weights + _hidden_bias;
-            // out_h_t = sigmoid(net_h_t)
-            pre_hidden_vals = tanh_m(net_h_vals);
-            // output_h_t = out_h_t * W + b_o
-            matrix_float o_vals = pre_hidden_vals * _hidden_output_weights + _output_bias;
-            matrix_float output_vals = sigmoid_m(o_vals);
-            _output_values.set_row(t, output_vals);
-            _hidden_values.set_row(t, pre_hidden_vals);
-        } 
+        _forward(feature, _hidden_values, _output_values);
         val1 = merge(label);
         val2 = merge(_output_values);
-        float eta = -0.1;
         // calc error
         matrix_float diff_val = label - _output_values;
         cost += diff_val.dot_mul(diff_val).sum() * 0.5;
-        // error back propogation
-        matrix_float nxt_hidden_error(1, _hidden_dim);
-        matrix_float delta_hidden_output_weights(_hidden_output_weights._x_dim, 
-            _hidden_output_weights._y_dim);
-        matrix_float delta_input_hidden_weights(_input_hidden_weights._x_dim,
-            _input_hidden_weights._y_dim);
-        matrix_float delta_hidden_weights(_hidden_weights._x_dim,
-            _hidden_weights._y_dim);
-        matrix_float delta_hidden_bias(_hidden_bias._x_dim, _hidden_bias._y_dim);
-        matrix_float delta_output_bias(_output_bias._x_dim, _output_bias._y_dim);
-        for (int t = time_step_cnt - 1; t >= 0; t--) {
-            // output_error = (o_t - y_t) * f'(o_t)
-            matrix_float output_error = (_output_values._R(t) - label._R(t)) \
-                .dot_mul(sigmoid_m_diff(_output_values._R(t)));
-            // hidden_error = 
-            // (output_error * V_jk + nxt_hidden_error * U_jr) dot_multiply f'(hidden_values[t-1])
-            matrix_float hidden_error = (output_error * _hidden_output_weights._T() + 
-                nxt_hidden_error * _hidden_weights._T()) \
-                .dot_mul(tanh_m_diff(_hidden_values._R(t)));
-            //_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error * eta);
-            // delta_V = delta_V + hidden_values[t-1]^T * output_error
-            delta_hidden_output_weights.add(_hidden_values._R(t)._T() * 
-                output_error);
-            //_input_hidden_weights.add(feature._R(t)._T() * hidden_error * eta);
-            delta_input_hidden_weights.add(feature._R(t)._T() * hidden_error);
-            if (t > 0) {
-                //_hidden_weights.add(_hidden_values._R(t - 1)._T() * hidden_error * eta); 
-                delta_hidden_weights.add(_hidden_values._R(t - 1)._T() * hidden_error);
-            }
-            delta_hidden_bias.add(hidden_error);
-            delta_output_bias.add(output_error);
-            nxt_hidden_error = hidden_error; 
-        }
-        // weight update
-        _hidden_output_weights.add(delta_hidden_output_weights * eta);
-        _input_hidden_weights.add(delta_input_hidden_weights * eta);
-        _hidden_weights.add(delta_hidden_weights * eta);
-        _hidden_bias.add(delta_hidden_bias * eta);
-        _output_bias.add(delta_output_bias * eta);
-        gradident_clip(_hidden_output_weights);
-        gradident_clip(_input_hidden_weights);
-        gradident_clip(_hidden_weights);
-        gradident_clip(_hidden_bias);
-        gradident_clip(_output_bias);
+        _backward(feature, label, _hidden_values, _output_values);
     }
     std::cout << "Epoch " << val1 << " " << val2 << " " << cost << std::endl;
     return cost / sample_indexes.size();
-}
-
-void RNN::_backward() {
 }
 
 void RNN::_load_feature_data() {
@@ -240,7 +253,7 @@ void RNN::_train() {
             for (int j = i * batch_size; j < (i + 1) * batch_size; j++) {
                 sample_indexes.push_back(j);
             }
-            _forward(sample_indexes, i);
+            _epoch(sample_indexes, epoch);
         }
     }
 }
@@ -252,6 +265,7 @@ using namespace sub_dl;
 int main() {
     RNN *rnn = new RNN(2, 16, 1);
     rnn->_set_epoch_cnt(100);
+    rnn->_set_eta(-0.1);
     rnn->_load_feature_data();
     rnn->_train();
 }

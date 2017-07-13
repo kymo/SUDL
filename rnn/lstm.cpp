@@ -129,187 +129,197 @@ LSTM::LSTM(int feature_dim, int hidden_dim, int output_dim) :
 
 }
 
-float LSTM::_forward(const std::vector<int>& sample_indexes, int epoch) {
+void LSTM::_forward(const matrix_float& feature,
+    LSTM_OUT& lstm_layer_values) {
+    
+    int time_step_cnt = feature._x_dim;
+    lstm_layer_values._resize(time_step_cnt, _hidden_dim, _output_dim);
+    matrix_float pre_hidden_vals(1, _hidden_dim);
+    matrix_float pre_cell_vals(1, _hidden_dim);
+    
+    for (int t = 0; t < time_step_cnt; t++) {
+        // xt
+        const matrix_float& xt = feature._R(t);
+        // fo = sigmoid(xt * _fg_input_weights + h(t-1) * _fg_hidden_weights + bias)
+        matrix_float f_output = sigmoid_m(xt * _fg_input_weights 
+            + pre_hidden_vals * _fg_hidden_weights + _fg_bias);
+        // io = sigmod_m(xt * _ig_input_weights + h(t - 1) * _ig_hidden_weights + bias)
+        matrix_float i_output = sigmoid_m(xt * _ig_input_weights 
+            + pre_hidden_vals * _ig_hidden_weights + _ig_bias);
+        // fo = sigmoid(xt * _og_input_weights + h(t-1) * _og_hidden_weights + bias)
+        matrix_float o_output = sigmoid_m(xt * _og_input_weights 
+            + pre_hidden_vals * _og_hidden_weights + _og_bias);
+        // c^~(t) = sigmoid(xt * _cell_input_weights + h(t-1) * _cell_hidden_weights) + bias
+        matrix_float cell_new_val = tanh_m(xt * _cell_input_weights 
+            + pre_hidden_vals * _cell_hidden_weights + _cell_bias);
+        // ct = c(t-1) * fo + c^~(t) * io
+
+        matrix_float cell_output = cell_new_val.dot_mul(i_output) + pre_cell_vals.dot_mul(f_output);
+        pre_cell_vals = cell_output;
+        pre_hidden_vals = tanh_m(cell_output).dot_mul(o_output);
+        //
+        matrix_float o_val = sigmoid_m(pre_cell_vals * _hidden_output_weights + _output_bias);
+
+
+        lstm_layer_values._cell_values.set_row(t, pre_cell_vals);
+        lstm_layer_values._output_values.set_row(t, o_val);
+        lstm_layer_values._hidden_values.set_row(t, pre_hidden_vals);
+        lstm_layer_values._og_values.set_row(t, o_output);
+        lstm_layer_values._ig_values.set_row(t, i_output);
+        lstm_layer_values._fg_values.set_row(t, f_output);
+        lstm_layer_values._cell_new_values.set_row(t, cell_new_val);
+    
+    } 
+
+}
+
+void LSTM::_backward(const matrix_float& feature,
+    const matrix_float& label,
+    const LSTM_OUT& lstm_layer_values) {
+
+    int time_step_cnt = feature._x_dim;
+
+    matrix_float nxt_hidden_error(1, _hidden_dim);
+    matrix_float nxt_cell_error(1, _hidden_dim);
+    
+    _ig_delta_input_weights.resize(_feature_dim, _hidden_dim);
+    _ig_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
+    _ig_delta_bias.resize(1, _hidden_dim);
+    
+    _fg_delta_input_weights.resize(_feature_dim, _hidden_dim);
+    _fg_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
+    _fg_delta_bias.resize(1, _hidden_dim);
+    
+    _og_delta_input_weights.resize(_feature_dim, _hidden_dim);
+    _og_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
+    _og_delta_bias.resize(1, _hidden_dim);
+    
+    _cell_delta_input_weights.resize(_feature_dim, _hidden_dim);
+    _cell_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
+    _cell_delta_bias.resize(1, _hidden_dim);
+
+    _delta_hidden_output_weights.resize(_hidden_dim, _output_dim);
+    _delta_output_bias.resize(1, _output_dim);
+
+    matrix_float output_error(1, _output_dim);
+    matrix_float fg_error(1, _hidden_dim);
+    matrix_float ig_error(1, _hidden_dim);
+    matrix_float og_error(1, _hidden_dim);
+    matrix_float new_cell_error(1, _hidden_dim);
+
+    matrix_float nxt_fg_error(1, _hidden_dim);
+    matrix_float nxt_ig_error(1, _hidden_dim);
+    matrix_float nxt_og_error(1, _hidden_dim);
+    matrix_float nxt_new_cell_error(1, _hidden_dim);
+
+    matrix_float nxt_cell_mid_error(1, _hidden_dim);
+
+    for (int t = time_step_cnt - 1; t >= 0; t--) {
+
+        // output layer error
+        matrix_float output_error = (lstm_layer_values._output_values._R(t) - label._R(t)) \
+            .dot_mul(sigmoid_m_diff(lstm_layer_values._output_values._R(t)));
+
+        // before get the output gate/input gate/forget gate error
+        // the mid error value should be calculated first
+        // cell_mid_error and hidden_mid_error
+        
+        matrix_float hidden_mid_error = output_error * _hidden_output_weights._T() \
+            + nxt_fg_error * _fg_hidden_weights._T() \
+            + nxt_ig_error * _ig_hidden_weights._T() \
+            + nxt_og_error * _og_hidden_weights._T() \
+            + nxt_new_cell_error * _cell_hidden_weights._T();
+
+        matrix_float cell_mid_error = hidden_mid_error
+            .dot_mul(lstm_layer_values._og_values._R(t))
+            .dot_mul(tanh_m_diff(lstm_layer_values._cell_values._R(t))) 
+            + nxt_cell_mid_error.dot_mul(lstm_layer_values._fg_values._R(t));
+
+        // output gate error
+        og_error = hidden_mid_error
+            .dot_mul(tanh_m(lstm_layer_values._cell_values._R(t)))
+            .dot_mul(sigmoid_m_diff(lstm_layer_values._og_values._R(t)));
+        // input gate error
+        ig_error = cell_mid_error
+            .dot_mul(lstm_layer_values._cell_new_values._R(t))
+            .dot_mul(sigmoid_m_diff(lstm_layer_values._ig_values._R(t)));
+        // forget gate error
+        fg_error.resize(0.0);
+        if (t > 0) {
+            fg_error = cell_mid_error
+                .dot_mul(lstm_layer_values._cell_values._R(t - 1))
+                .dot_mul(sigmoid_m_diff(lstm_layer_values._fg_values._R(t)));
+        }
+        // new cell error
+        new_cell_error = cell_mid_error
+            .dot_mul(lstm_layer_values._ig_values._R(t))
+            .dot_mul(tanh_m_diff(lstm_layer_values._cell_new_values._R(t)));
+        // add delta
+        const matrix_float& xt_trans = feature._R(t)._T();
+        
+        _delta_hidden_output_weights.add(lstm_layer_values._hidden_values._R(t)._T() * output_error); 
+        _ig_delta_input_weights.add(xt_trans * ig_error);
+        _fg_delta_input_weights.add(xt_trans * fg_error);
+        _og_delta_input_weights.add(xt_trans * og_error);
+        _cell_delta_input_weights.add(xt_trans * new_cell_error);
+        if (t > 0) {
+            const matrix_float& hidden_value_pre = lstm_layer_values._hidden_values._R(t - 1)._T();
+            _ig_delta_hidden_weights.add(hidden_value_pre * ig_error);
+            _og_delta_hidden_weights.add(hidden_value_pre * og_error);
+            _fg_delta_hidden_weights.add(hidden_value_pre * fg_error);
+            _cell_delta_hidden_weights.add(hidden_value_pre * new_cell_error);
+        }
+        _delta_output_bias.add(output_error);
+        _ig_delta_bias.add(ig_error);
+        _og_delta_bias.add(og_error);
+        _fg_delta_bias.add(fg_error);
+        _cell_delta_bias.add(new_cell_error);
+
+        nxt_ig_error = ig_error;
+        nxt_og_error = og_error;
+        nxt_fg_error = fg_error;
+        nxt_new_cell_error = new_cell_error;
+    }
+    // weight update
+    
+    _ig_input_weights.add(_ig_delta_input_weights * _eta);
+    _ig_hidden_weights.add(_ig_delta_hidden_weights * _eta);
+    _ig_bias.add(_ig_delta_bias * _eta);
+    
+    _fg_input_weights.add(_fg_delta_input_weights * _eta);
+    _fg_hidden_weights.add(_fg_delta_hidden_weights * _eta);
+    _fg_bias.add(_fg_delta_bias * _eta);
+    
+    _og_input_weights.add(_og_delta_input_weights * _eta);
+    _og_hidden_weights.add(_og_delta_hidden_weights * _eta);
+    _og_bias.add(_og_delta_bias * _eta);
+    
+    _cell_input_weights.add(_cell_delta_input_weights * _eta);
+    _cell_hidden_weights.add(_cell_delta_hidden_weights * _eta);
+    _cell_bias.add(_cell_delta_bias * _eta);
+
+    _hidden_output_weights.add(_delta_hidden_output_weights * _eta);
+    _output_bias.add(_delta_output_bias * _eta);
+}
+
+float LSTM::_epoch(const std::vector<int>& sample_indexes, int epoch) {
 
     float cost = 0.0;
     int val1, val2;
     for (size_t i = 0; i < sample_indexes.size(); i++) {
         const matrix_float& feature = _train_x_features[sample_indexes[i]];
         const matrix_float& label = _train_y_labels[sample_indexes[i]];
-        int time_step_cnt = feature._x_dim;
 
-        _output_values.resize(time_step_cnt, _output_dim);
-        _hidden_values.resize(time_step_cnt, _hidden_dim);
-        _cell_values.resize(time_step_cnt, _hidden_dim);
-        _ig_values.resize(time_step_cnt, _hidden_dim);
-        _og_values.resize(time_step_cnt, _hidden_dim);
-        _fg_values.resize(time_step_cnt, _hidden_dim);
-        _cell_new_values.resize(time_step_cnt, _hidden_dim);
+        _forward(feature, lstm_layer_values);
 
-        matrix_float pre_hidden_vals(1, _hidden_dim);
-        matrix_float pre_cell_vals(1, _hidden_dim);
-        
-        for (int t = 0; t < time_step_cnt; t++) {
-            // xt
-            const matrix_float& xt = feature._R(t);
-            // fo = sigmoid(xt * _fg_input_weights + h(t-1) * _fg_hidden_weights + bias)
-            matrix_float f_output = sigmoid_m(xt * _fg_input_weights 
-                + pre_hidden_vals * _fg_hidden_weights + _fg_bias);
-            // io = sigmod_m(xt * _ig_input_weights + h(t - 1) * _ig_hidden_weights + bias)
-            matrix_float i_output = sigmoid_m(xt * _ig_input_weights 
-                + pre_hidden_vals * _ig_hidden_weights + _ig_bias);
-            // fo = sigmoid(xt * _og_input_weights + h(t-1) * _og_hidden_weights + bias)
-            matrix_float o_output = sigmoid_m(xt * _og_input_weights 
-                + pre_hidden_vals * _og_hidden_weights + _og_bias);
-            // c^~(t) = sigmoid(xt * _cell_input_weights + h(t-1) * _cell_hidden_weights) + bias
-            matrix_float cell_new_val = tanh_m(xt * _cell_input_weights 
-                + pre_hidden_vals * _cell_hidden_weights + _cell_bias);
-            // ct = c(t-1) * fo + c^~(t) * io
-
-            matrix_float cell_output = cell_new_val.dot_mul(i_output) + pre_cell_vals.dot_mul(f_output);
-            pre_cell_vals = cell_output;
-            pre_hidden_vals = tanh_m(cell_output).dot_mul(o_output);
-            //
-            matrix_float o_val = sigmoid_m(pre_cell_vals * _hidden_output_weights + _output_bias);
-
-            _cell_values.set_row(t, pre_cell_vals);
-            _output_values.set_row(t, o_val);
-            _hidden_values.set_row(t, pre_hidden_vals);
-            _og_values.set_row(t, o_output);
-            _ig_values.set_row(t, i_output);
-            _fg_values.set_row(t, f_output);
-            _cell_new_values.set_row(t, cell_new_val);
-        
-        } 
         val1 = merge(label);
-        val2 = merge(_output_values);
+        val2 = merge(lstm_layer_values._output_values);
         float eta = -0.1;
         // calc error
-        matrix_float diff_val = label - _output_values;
+        matrix_float diff_val = label - lstm_layer_values._output_values;
         cost += diff_val.dot_mul(diff_val).sum() * 0.5;
         // error back propogation
-        matrix_float nxt_hidden_error(1, _hidden_dim);
-        matrix_float nxt_cell_error(1, _hidden_dim);
-        
-        _ig_delta_input_weights.resize(_feature_dim, _hidden_dim);
-        _ig_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
-        _ig_delta_bias.resize(1, _hidden_dim);
-        
-        _fg_delta_input_weights.resize(_feature_dim, _hidden_dim);
-        _fg_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
-        _fg_delta_bias.resize(1, _hidden_dim);
-        
-        _og_delta_input_weights.resize(_feature_dim, _hidden_dim);
-        _og_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
-        _og_delta_bias.resize(1, _hidden_dim);
-        
-        _cell_delta_input_weights.resize(_feature_dim, _hidden_dim);
-        _cell_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
-        _cell_delta_bias.resize(1, _hidden_dim);
-
-        _delta_hidden_output_weights.resize(_hidden_dim, _output_dim);
-        _delta_output_bias.resize(1, _output_dim);
-
-        matrix_float output_error(1, _output_dim);
-        matrix_float fg_error(1, _hidden_dim);
-        matrix_float ig_error(1, _hidden_dim);
-        matrix_float og_error(1, _hidden_dim);
-        matrix_float new_cell_error(1, _hidden_dim);
-
-        matrix_float nxt_fg_error(1, _hidden_dim);
-        matrix_float nxt_ig_error(1, _hidden_dim);
-        matrix_float nxt_og_error(1, _hidden_dim);
-        matrix_float nxt_new_cell_error(1, _hidden_dim);
-
-        matrix_float nxt_cell_mid_error(1, _hidden_dim);
-
-        for (int t = time_step_cnt - 1; t >= 0; t--) {
-
-            // output layer error
-            matrix_float output_error = (_output_values._R(t) - label._R(t)) \
-                .dot_mul(sigmoid_m_diff(_output_values._R(t)));
-
-            // before get the output gate/input gate/forget gate error
-            // the mid error value should be calculated first
-            // cell_mid_error and hidden_mid_error
-            
-            matrix_float hidden_mid_error = output_error * _hidden_output_weights._T() \
-                + nxt_fg_error * _fg_hidden_weights._T() \
-                + nxt_ig_error * _ig_hidden_weights._T() \
-                + nxt_og_error * _og_hidden_weights._T() \
-                + nxt_new_cell_error * _cell_hidden_weights._T();
-
-            matrix_float cell_mid_error = hidden_mid_error
-                .dot_mul(_og_values._R(t))
-                .dot_mul(tanh_m_diff(_cell_values._R(t))) 
-                + nxt_cell_mid_error.dot_mul(_fg_values._R(t));
-
-            // output gate error
-            og_error = hidden_mid_error
-                .dot_mul(tanh_m(_cell_values._R(t)))
-                .dot_mul(sigmoid_m_diff(_og_values._R(t)));
-            // input gate error
-            ig_error = cell_mid_error
-                .dot_mul(_cell_new_values._R(t))
-                .dot_mul(sigmoid_m_diff(_ig_values._R(t)));
-            // forget gate error
-            fg_error.resize(0.0);
-            if (t > 0) {
-                fg_error = cell_mid_error
-                    .dot_mul(_cell_values._R(t - 1))
-                    .dot_mul(sigmoid_m_diff(_fg_values._R(t)));
-            }
-            // new cell error
-            new_cell_error = cell_mid_error
-                .dot_mul(_ig_values._R(t))
-                .dot_mul(tanh_m_diff(_cell_new_values._R(t)));
-            // add delta
-            const matrix_float& xt_trans = feature._R(t)._T();
-            
-            _delta_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error); 
-            _ig_delta_input_weights.add(xt_trans * ig_error);
-            _fg_delta_input_weights.add(xt_trans * fg_error);
-            _og_delta_input_weights.add(xt_trans * og_error);
-            _cell_delta_input_weights.add(xt_trans * new_cell_error);
-            if (t > 0) {
-                const matrix_float& hidden_value_pre = _hidden_values._R(t - 1)._T();
-                _ig_delta_hidden_weights.add(hidden_value_pre * ig_error);
-                _og_delta_hidden_weights.add(hidden_value_pre * og_error);
-                _fg_delta_hidden_weights.add(hidden_value_pre * fg_error);
-                _cell_delta_hidden_weights.add(hidden_value_pre * new_cell_error);
-            }
-            _delta_output_bias.add(output_error);
-            _ig_delta_bias.add(ig_error);
-            _og_delta_bias.add(og_error);
-            _fg_delta_bias.add(fg_error);
-            _cell_delta_bias.add(new_cell_error);
-
-            nxt_ig_error = ig_error;
-            nxt_og_error = og_error;
-            nxt_fg_error = fg_error;
-            nxt_new_cell_error = new_cell_error;
-        }
-        // weight update
-        
-        _ig_input_weights.add(_ig_delta_input_weights * eta);
-        _ig_hidden_weights.add(_ig_delta_hidden_weights * eta);
-        _ig_bias.add(_ig_delta_bias * eta);
-        
-        _fg_input_weights.add(_fg_delta_input_weights * eta);
-        _fg_hidden_weights.add(_fg_delta_hidden_weights * eta);
-        _fg_bias.add(_fg_delta_bias * eta);
-        
-        _og_input_weights.add(_og_delta_input_weights * eta);
-        _og_hidden_weights.add(_og_delta_hidden_weights * eta);
-        _og_bias.add(_og_delta_bias * eta);
-        
-        _cell_input_weights.add(_cell_delta_input_weights * eta);
-        _cell_hidden_weights.add(_cell_delta_hidden_weights * eta);
-        _cell_bias.add(_cell_delta_bias * eta);
-
-        _hidden_output_weights.add(_delta_hidden_output_weights * eta);
-        _output_bias.add(_delta_output_bias * eta);
-
+           _backward(feature, label, lstm_layer_values);
         /*
         gradident_clip(_hidden_output_weights);
         gradident_clip(_input_hidden_weights);
@@ -320,9 +330,6 @@ float LSTM::_forward(const std::vector<int>& sample_indexes, int epoch) {
     }
     std::cout << "Epoch " << val1 << " " << val2 << " " << cost << std::endl;
     return cost / sample_indexes.size();
-}
-
-void LSTM::_backward() {
 }
 
 void LSTM::_load_feature_data() {
@@ -381,7 +388,7 @@ void LSTM::_train() {
             for (int j = i * batch_size; j < (i + 1) * batch_size; j++) {
                 sample_indexes.push_back(j);
             }
-            _forward(sample_indexes, i);
+            _epoch(sample_indexes, i);
         }
     }
 }
@@ -393,6 +400,7 @@ using namespace sub_dl;
 int main() {
     LSTM *lstm = new LSTM(2, 16, 1);
     lstm->_set_epoch_cnt(100);
+    lstm->_set_eta(-0.1);
     lstm->_load_feature_data();
     lstm->_train();
 }

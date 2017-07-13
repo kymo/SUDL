@@ -223,7 +223,7 @@ public:
 
     void add(const Matrix<T>& m) const {
         if (m._x_dim != _x_dim || m._y_dim != _y_dim) {
-            std::cerr << "Error when dot multiply two matrix[size not match!]" << std::endl;
+            std::cerr << "Error when add other a matrix[size not match!]" << std::endl;
             exit(1);
         }
         for (size_t i = 0; i < _x_dim; ++i) {

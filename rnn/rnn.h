@@ -39,6 +39,7 @@ private:
     int _output_dim;
 
     int _max_epoch_cnt;
+    float _eta;
 
 public:
     RNN();
@@ -50,8 +51,21 @@ public:
         _max_epoch_cnt = max_epoch_cnt;
     }
 
-    float _forward(const std::vector<int>& sample_indexes, int epoch);
-    void _backward();
+    void _set_eta(float eta) {
+        _eta = eta;
+    }
+
+    float _epoch(const std::vector<int>& sample_indexes, int epoch);
+    
+    void _backward(const matrix_float& feature,
+        const matrix_float& label,
+        const matrix_float& hidden_values,
+        const matrix_float& output_values);
+    
+    void _forward(const matrix_float& feature,
+        matrix_float& hidden_values,
+        matrix_float& output_values);
+
     void _load_feature_data();
     void _train();
     void _predict();

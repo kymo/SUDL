@@ -113,9 +113,9 @@ float RNN::_forward(const std::vector<int>& sample_indexes, int epoch) {
         _hidden_values.resize(time_step_cnt, _hidden_dim);
         
         matrix_float pre_hidden_vals(1, _hidden_dim);
-        for (size_t t = 1; t <= time_step_cnt; t++) {
+        for (int t = 0; t < time_step_cnt; t++) {
             // h_t
-            const matrix_float& xt = feature._R(t - 1);
+            const matrix_float& xt = feature._R(t);
             // net_h_t = xt * v + h_{t-1} * u + b_h
             matrix_float net_h_vals = xt * _input_hidden_weights + pre_hidden_vals * _hidden_weights + _hidden_bias;
             // out_h_t = sigmoid(net_h_t)
@@ -123,8 +123,8 @@ float RNN::_forward(const std::vector<int>& sample_indexes, int epoch) {
             // output_h_t = out_h_t * W + b_o
             matrix_float o_vals = pre_hidden_vals * _hidden_output_weights + _output_bias;
             matrix_float output_vals = sigmoid_m(o_vals);
-            _output_values.set_row(t - 1, output_vals);
-            _hidden_values.set_row(t - 1, pre_hidden_vals);
+            _output_values.set_row(t, output_vals);
+            _hidden_values.set_row(t, pre_hidden_vals);
         } 
         val1 = merge(label);
         val2 = merge(_output_values);
@@ -142,24 +142,24 @@ float RNN::_forward(const std::vector<int>& sample_indexes, int epoch) {
             _hidden_weights._y_dim);
         matrix_float delta_hidden_bias(_hidden_bias._x_dim, _hidden_bias._y_dim);
         matrix_float delta_output_bias(_output_bias._x_dim, _output_bias._y_dim);
-        for (size_t t = time_step_cnt; t >= 1; t--) {
+        for (int t = time_step_cnt - 1; t >= 0; t--) {
             // output_error = (o_t - y_t) * f'(o_t)
-            matrix_float output_error = (_output_values._R(t - 1) - label._R(t - 1)) \
-                .dot_mul(sigmoid_m_diff(_output_values._R(t - 1)));
+            matrix_float output_error = (_output_values._R(t) - label._R(t)) \
+                .dot_mul(sigmoid_m_diff(_output_values._R(t)));
             // hidden_error = 
             // (output_error * V_jk + nxt_hidden_error * U_jr) dot_multiply f'(hidden_values[t-1])
             matrix_float hidden_error = (output_error * _hidden_output_weights._T() + 
                 nxt_hidden_error * _hidden_weights._T()) \
-                .dot_mul(tanh_m_diff(_hidden_values._R(t - 1)));
-            //_hidden_output_weights.add(_hidden_values._R(t - 1)._T() * output_error * eta);
+                .dot_mul(tanh_m_diff(_hidden_values._R(t)));
+            //_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error * eta);
             // delta_V = delta_V + hidden_values[t-1]^T * output_error
-            delta_hidden_output_weights.add(_hidden_values._R(t - 1)._T() * 
+            delta_hidden_output_weights.add(_hidden_values._R(t)._T() * 
                 output_error);
-            //_input_hidden_weights.add(feature._R(t - 1)._T() * hidden_error * eta);
-            delta_input_hidden_weights.add(feature._R(t - 1)._T() * hidden_error);
-            if (t > 1) {
-                //_hidden_weights.add(_hidden_values._R(t - 2)._T() * hidden_error * eta); 
-                delta_hidden_weights.add(_hidden_values._R(t - 2)._T() * hidden_error);
+            //_input_hidden_weights.add(feature._R(t)._T() * hidden_error * eta);
+            delta_input_hidden_weights.add(feature._R(t)._T() * hidden_error);
+            if (t > 0) {
+                //_hidden_weights.add(_hidden_values._R(t - 1)._T() * hidden_error * eta); 
+                delta_hidden_weights.add(_hidden_values._R(t - 1)._T() * hidden_error);
             }
             delta_hidden_bias.add(hidden_error);
             delta_output_bias.add(output_error);

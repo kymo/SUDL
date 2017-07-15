@@ -9,35 +9,6 @@
 
 namespace sub_dl {
 
-template <typename T>
-int merge(const Matrix<T>& output_val) {
-    int val = 0;
-    int d = 1;
-    for (int i = 8; i >= 1; i--) {
-        val += int(output_val[i - 1][0] + 0.5) * pow(2, i - 1);
-    }
-    return val;
-}
-
-template <typename T>
-std::string merge(const Matrix<T>& output_val, int wordseg) {
-    
-    std::string ret = "";
-    for (int i = 0; i < output_val._x_dim; i++) {
-        int d = 1;
-        T val = 0.0;
-        for (int j = 0; j < output_val._y_dim; j++) {
-            if (val < output_val[i][j]) {
-                val = output_val[i][j];
-                d = j + 1;
-            }
-        }
-        ret += char('0' + d);
-        ret += "_";
-    }
-    return ret;
-}
-
 
 LSTM::LSTM() {
 }
@@ -96,12 +67,12 @@ LSTM::LSTM(int feature_dim, int hidden_dim, int output_dim, bool use_peelhole) :
 void LSTM::_forward(const matrix_double& feature,
     LSTM_OUT& lstm_layer_values) {
     
-    int time_step_cnt = feature._x_dim;
-    lstm_layer_values._resize(time_step_cnt, _hidden_dim, _output_dim);
+    int seq_len = feature._x_dim;
+    lstm_layer_values._resize(seq_len, _hidden_dim, _output_dim);
     matrix_double pre_hidden_vals(1, _hidden_dim);
     matrix_double pre_cell_vals(1, _hidden_dim);
     
-    for (int t = 0; t < time_step_cnt; t++) {
+    for (int t = 0; t < seq_len; t++) {
         // xt
         const matrix_double& xt = feature._R(t);
         // fo = sigmoid(xt * _fg_input_weights + h(t-1) * _fg_hidden_weights + bias)
@@ -162,7 +133,7 @@ void LSTM::_backward(const matrix_double& feature,
     const matrix_double& label,
     const LSTM_OUT& lstm_layer_values) {
 
-    int time_step_cnt = feature._x_dim;
+    int seq_len = feature._x_dim;
 
     matrix_double nxt_hidden_error(1, _hidden_dim);
     matrix_double nxt_cell_error(1, _hidden_dim);
@@ -199,7 +170,7 @@ void LSTM::_backward(const matrix_double& feature,
 
     matrix_double nxt_cell_mid_error(1, _hidden_dim);
 
-    for (int t = time_step_cnt - 1; t >= 0; t--) {
+    for (int t = seq_len - 1; t >= 0; t--) {
 
         // output layer error
         matrix_double output_error = (lstm_layer_values._output_values._R(t) - label._R(t)) \
@@ -217,8 +188,11 @@ void LSTM::_backward(const matrix_double& feature,
 
         matrix_double cell_mid_error = hidden_mid_error
             .dot_mul(lstm_layer_values._og_values._R(t))
-            .dot_mul(tanh_m_diff(lstm_layer_values._cell_values._R(t)))
-            + nxt_cell_mid_error.dot_mul(lstm_layer_values._fg_values._R(t));
+            .dot_mul(tanh_m_diff(lstm_layer_values._cell_values._R(t)));
+		if (t != seq_len - 1) {
+            cell_mid_error = cell_mid_error + nxt_cell_mid_error.dot_mul(lstm_layer_values._fg_values._R(t + 1));
+
+		}
         if (_use_peelhole) {
             cell_mid_error = cell_mid_error + nxt_fg_error * _fg_cell_weights._T() 
                 + nxt_ig_error * _ig_cell_weights._T()
@@ -270,24 +244,24 @@ void LSTM::_backward(const matrix_double& feature,
         nxt_new_cell_error = new_cell_error;
     }
     // weight update
-    gradident_clip(_ig_delta_input_weights, _clip_gra);
-    gradident_clip(_ig_delta_hidden_weights, _clip_gra);
-    gradident_clip(_ig_delta_bias, _clip_gra);
+    gradient_clip(_ig_delta_input_weights, _clip_gra);
+    gradient_clip(_ig_delta_hidden_weights, _clip_gra);
+    gradient_clip(_ig_delta_bias, _clip_gra);
     
-    gradident_clip(_fg_delta_input_weights, _clip_gra);
-    gradident_clip(_fg_delta_hidden_weights, _clip_gra);
-    gradident_clip(_fg_delta_bias, _clip_gra);
+    gradient_clip(_fg_delta_input_weights, _clip_gra);
+    gradient_clip(_fg_delta_hidden_weights, _clip_gra);
+    gradient_clip(_fg_delta_bias, _clip_gra);
     
-    gradident_clip(_og_delta_input_weights, _clip_gra);
-    gradident_clip(_og_delta_hidden_weights, _clip_gra);
-    gradident_clip(_og_delta_bias, _clip_gra);
+    gradient_clip(_og_delta_input_weights, _clip_gra);
+    gradient_clip(_og_delta_hidden_weights, _clip_gra);
+    gradient_clip(_og_delta_bias, _clip_gra);
     
-    gradident_clip(_cell_delta_input_weights, _clip_gra);
-    gradident_clip(_cell_delta_hidden_weights, _clip_gra);
-    gradident_clip(_cell_delta_bias, _clip_gra);
+    gradient_clip(_cell_delta_input_weights, _clip_gra);
+    gradient_clip(_cell_delta_hidden_weights, _clip_gra);
+    gradient_clip(_cell_delta_bias, _clip_gra);
     
-    gradident_clip(_delta_hidden_output_weights, _clip_gra);
-    gradident_clip(_delta_output_bias, _clip_gra);
+    gradient_clip(_delta_hidden_output_weights, _clip_gra);
+    gradient_clip(_delta_output_bias, _clip_gra);
 
     
     _ig_input_weights.add(_ig_delta_input_weights * _eta);

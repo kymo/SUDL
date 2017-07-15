@@ -28,33 +28,6 @@ void clip_values(Matrix<double>& values) {
     }
 }
 
-std::string merge(const Matrix<double>& output_val, int wordseg) {
-    std::string ret = "";
-    for (int i = 0; i < output_val._x_dim; i++) {
-        int d = 0;
-        double val = 0.0;
-        for (int j = output_val._y_dim; j >= 1; j--) {
-            if (val < output_val[i][j - 1]) {
-                val = output_val[i][j - 1];
-                d = j;
-            }
-        }
-        ret += char('0' + d);
-        ret += "_";
-    }
-    return ret;
-}
-
-int merge(const Matrix<double>& output_val) {
-    int val = 0;
-    int d = 1;
-    for (int i = output_val._x_dim; i >= 1; i--) {
-        val += int(output_val[i - 1][0] + 0.5) * pow(2, i - 1);
-    }
-    return val;
-}
-
-
 RNN::RNN() {
 }
 
@@ -79,12 +52,12 @@ void RNN::_forward(const matrix_double& feature,
     matrix_double& hidden_values, 
     matrix_double& output_values) {
         
-    int time_step_cnt = feature._x_dim;
-    output_values.resize(time_step_cnt, _output_dim);
-    hidden_values.resize(time_step_cnt, _hidden_dim);    
+    int seq_len = feature._x_dim;
+    output_values.resize(seq_len, _output_dim);
+    hidden_values.resize(seq_len, _hidden_dim);    
     matrix_double pre_hidden_vals(1, _hidden_dim);
 
-    for (int t = 0; t < time_step_cnt; t++) {
+    for (int t = 0; t < seq_len; t++) {
         // h_t
         const matrix_double& xt = feature._R(t);
         // net_h_t = xt * v + h_{t-1} * u + b_h
@@ -107,7 +80,7 @@ void RNN::_backward(const matrix_double& feature,
     const matrix_double& hidden_values, 
     const matrix_double& output_values) {
 
-    int time_step_cnt = label._x_dim;
+    int seq_len = label._x_dim;
     // error back propogation
     matrix_double nxt_hidden_error(1, _hidden_dim);
     matrix_double delta_hidden_output_weights(_hidden_output_weights._x_dim, 
@@ -118,7 +91,7 @@ void RNN::_backward(const matrix_double& feature,
         _hidden_weights._y_dim);
     matrix_double delta_hidden_bias(_hidden_bias._x_dim, _hidden_bias._y_dim);
     matrix_double delta_output_bias(_output_bias._x_dim, _output_bias._y_dim);
-    for (int t = time_step_cnt - 1; t >= 0; t--) {
+    for (int t = seq_len - 1; t >= 0; t--) {
         // output_error = (o_t - y_t) * f'(o_t)
         matrix_double output_error = (output_values._R(t) - label._R(t)) \
             .dot_mul(sigmoid_m_diff(output_values._R(t)));
@@ -141,19 +114,19 @@ void RNN::_backward(const matrix_double& feature,
         delta_hidden_bias.add(hidden_error);
         delta_output_bias.add(output_error);
         
-        //gradident_clip(delta_hidden_output_weights);
-        //gradident_clip(delta_input_hidden_weights);
-        //gradident_clip(delta_hidden_weights);
-        //gradident_clip(delta_hidden_bias);
-        //gradident_clip(delta_output_bias);
+        //gradient_clip(delta_hidden_output_weights);
+        //gradient_clip(delta_input_hidden_weights);
+        //gradient_clip(delta_hidden_weights);
+        //gradient_clip(delta_hidden_bias);
+        //gradient_clip(delta_output_bias);
         
         nxt_hidden_error = hidden_error; 
     }
-    gradident_clip(delta_hidden_output_weights, _clip_gra);
-    gradident_clip(delta_input_hidden_weights, _clip_gra);
-    gradident_clip(delta_hidden_weights, _clip_gra);
-    gradident_clip(delta_hidden_bias, _clip_gra);
-    gradident_clip(delta_output_bias, _clip_gra);
+    gradient_clip(delta_hidden_output_weights, _clip_gra);
+    gradient_clip(delta_input_hidden_weights, _clip_gra);
+    gradient_clip(delta_hidden_weights, _clip_gra);
+    gradient_clip(delta_hidden_bias, _clip_gra);
+    gradient_clip(delta_output_bias, _clip_gra);
     // weight update
     _hidden_output_weights.add(delta_hidden_output_weights * _eta);
     _input_hidden_weights.add(delta_input_hidden_weights * _eta);

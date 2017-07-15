@@ -287,13 +287,13 @@ public:
         alloc_matrix<T>(_val, _x_dim, _y_dim);
     }
 
-	void resize(T val) {
-		for (int i = 0; i < _x_dim; i++) {
-			for (int j = 0; j < _y_dim;j ++) {
-				_val[i][j] = val;
-			}
-		}
-	}
+    void resize(T val) {
+        for (int i = 0; i < _x_dim; i++) {
+            for (int j = 0; j < _y_dim;j ++) {
+                _val[i][j] = val;
+            }
+        }
+    }
     
     Matrix<T> _T() const {
         Matrix<T> t_matrix(_y_dim, _x_dim);
@@ -308,6 +308,7 @@ public:
 
 typedef Matrix<float> matrix_float;
 typedef Matrix<int> matrix_int;
+typedef Matrix<double> matrix_double;
 
 }
 

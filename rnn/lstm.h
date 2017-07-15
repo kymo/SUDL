@@ -15,13 +15,13 @@ class LSTM_OUT {
 
 public:
     // 
-    matrix_float _output_values;
-    matrix_float _hidden_values;
-    matrix_float _cell_values;
-    matrix_float _og_values;
-    matrix_float _ig_values;
-    matrix_float _fg_values;
-    matrix_float _cell_new_values;
+    matrix_double _output_values;
+    matrix_double _hidden_values;
+    matrix_double _cell_values;
+    matrix_double _og_values;
+    matrix_double _ig_values;
+    matrix_double _fg_values;
+    matrix_double _cell_new_values;
     
     void _resize(int time_step_cnt,
         int hidden_dim, 
@@ -41,89 +41,104 @@ class LSTM {
 private:
     
     // input gate
-    matrix_float _ig_input_weights;
-    matrix_float _ig_hidden_weights;
-    matrix_float _ig_cell_weights;
-    matrix_float _ig_bias;
-    matrix_float _ig_delta_input_weights;
-    matrix_float _ig_delta_hidden_weights;
-    matrix_float _ig_delta_cell_weights;
-    matrix_float _ig_delta_bias;
-
+    matrix_double _ig_input_weights;
+    matrix_double _ig_hidden_weights;
+    matrix_double _ig_cell_weights;
+    matrix_double _ig_bias;
+    
+    matrix_double _ig_delta_input_weights;
+    matrix_double _ig_delta_hidden_weights;
+    matrix_double _ig_delta_cell_weights;
+    matrix_double _ig_delta_bias;
 
     // forget gate
-    matrix_float _fg_input_weights;
-    matrix_float _fg_hidden_weights;
-    matrix_float _fg_cell_weights;
-    matrix_float _fg_bias;
-    matrix_float _fg_delta_input_weights;
-    matrix_float _fg_delta_hidden_weights;
-    matrix_float _fg_delta_cell_weights;
-    matrix_float _fg_delta_bias;
+    matrix_double _fg_input_weights;
+    matrix_double _fg_hidden_weights;
+    matrix_double _fg_cell_weights;
+    matrix_double _fg_bias;
+    matrix_double _fg_delta_input_weights;
+    matrix_double _fg_delta_hidden_weights;
+    matrix_double _fg_delta_cell_weights;
+    matrix_double _fg_delta_bias;
 
     // output gate
-    matrix_float _og_input_weights;
-    matrix_float _og_hidden_weights;
-    matrix_float _og_cell_weights;
-    matrix_float _og_bias;
-    matrix_float _og_delta_input_weights;
-    matrix_float _og_delta_hidden_weights;
-    matrix_float _og_delta_cell_weights;
-    matrix_float _og_delta_bias;
+    matrix_double _og_input_weights;
+    matrix_double _og_hidden_weights;
+    matrix_double _og_cell_weights;
+    matrix_double _og_bias;
+    matrix_double _og_delta_input_weights;
+    matrix_double _og_delta_hidden_weights;
+    matrix_double _og_delta_cell_weights;
+    matrix_double _og_delta_bias;
 
     // new cell state
-    matrix_float _cell_input_weights;
-    matrix_float _cell_hidden_weights;
-    matrix_float _cell_bias;
-    matrix_float _cell_delta_input_weights;
-    matrix_float _cell_delta_hidden_weights;
-    matrix_float _cell_delta_bias;
+    matrix_double _cell_input_weights;
+    matrix_double _cell_hidden_weights;
+    matrix_double _cell_bias;
+    matrix_double _cell_delta_input_weights;
+    matrix_double _cell_delta_hidden_weights;
+    matrix_double _cell_delta_bias;
 
     // output layer
-    matrix_float _hidden_output_weights;
-    matrix_float _output_bias;
-    matrix_float _delta_hidden_output_weights;
-    matrix_float _delta_output_bias;
+    matrix_double _hidden_output_weights;
+    matrix_double _output_bias;
+    matrix_double _delta_hidden_output_weights;
+    matrix_double _delta_output_bias;
 
     // output of each layer
     LSTM_OUT lstm_layer_values;
 
-    std::vector<matrix_float> _x_features;
-    std::vector<matrix_float> _y_labels;
+    std::vector<matrix_double> _x_features;
+    std::vector<matrix_double> _y_labels;
 
-    std::vector<matrix_float> _train_x_features;
-    std::vector<matrix_float> _train_y_labels;
-    std::vector<matrix_float> _test_x_features;
-    std::vector<matrix_float> _test_y_labels;
+    std::vector<matrix_double> _train_x_features;
+    std::vector<matrix_double> _train_y_labels;
+    std::vector<matrix_double> _test_x_features;
+    std::vector<matrix_double> _test_y_labels;
 
     int _feature_dim;
     int _hidden_dim;
     int _output_dim;
 
     int _max_epoch_cnt;
-    float _eta;
-
+    double _eta;
+    double _clip_gra;
+    bool _use_peelhole;
 public:
     LSTM();
     ~LSTM() {
     }
-    LSTM(int feature_dim, int hidden_dim, int output_dim);
+    LSTM(int feature_dim, int hidden_dim, int output_dim, bool use_peelhole);
 
     void _set_epoch_cnt(int max_epoch_cnt) {
         _max_epoch_cnt = max_epoch_cnt;
     }
 
-    void _set_eta(float eta) {
+    void _set_eta(double eta) {
         _eta = eta;
     }
 
-    float _epoch(const std::vector<int>& sample_indexes, int epoch);
+    void _set_clip_gra(double gra) {
+        _clip_gra = gra;
+    }
+
+    void _set_use_peelhole(bool use_peelhole) {
+        _use_peelhole = use_peelhole;
+    }
     
-    void _backward(const matrix_float& feature,
-        const matrix_float& label,
+    void _push_feature(const matrix_double& feature,
+        const matrix_double& label) {
+        _train_x_features.push_back(feature);
+        _train_y_labels.push_back(label);
+    }
+
+    double _epoch(const std::vector<int>& sample_indexes, int epoch);
+    
+    void _backward(const matrix_double& feature,
+        const matrix_double& label,
         const LSTM_OUT& lstm_layer_values);
     
-    void _forward(const matrix_float& feature,
+    void _forward(const matrix_double& feature,
         LSTM_OUT& lstm_layer_values);
 
     void _load_feature_data();

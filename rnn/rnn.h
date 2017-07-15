@@ -14,32 +14,33 @@ namespace sub_dl {
 class RNN {
 
 private:
-    matrix_float _input_hidden_weights;
-    matrix_float _hidden_weights;
-    matrix_float _hidden_output_weights;
-    matrix_float _hidden_bias;
-    matrix_float _output_bias;
+    matrix_double _input_hidden_weights;
+    matrix_double _hidden_weights;
+    matrix_double _hidden_output_weights;
+    matrix_double _hidden_bias;
+    matrix_double _output_bias;
 
-    matrix_float _hidden_errors;
-    matrix_float _hidden_values;
+    matrix_double _hidden_errors;
+    matrix_double _hidden_values;
 
-    matrix_float _output_errors;
-    matrix_float _output_values;
+    matrix_double _output_errors;
+    matrix_double _output_values;
 
-    std::vector<matrix_float> _x_features;
-    std::vector<matrix_float> _y_labels;
+    std::vector<matrix_double> _x_features;
+    std::vector<matrix_double> _y_labels;
 
-    std::vector<matrix_float> _train_x_features;
-    std::vector<matrix_float> _train_y_labels;
-    std::vector<matrix_float> _test_x_features;
-    std::vector<matrix_float> _test_y_labels;
+    std::vector<matrix_double> _train_x_features;
+    std::vector<matrix_double> _train_y_labels;
+    std::vector<matrix_double> _test_x_features;
+    std::vector<matrix_double> _test_y_labels;
 
     int _feature_dim;
     int _hidden_dim;
     int _output_dim;
 
     int _max_epoch_cnt;
-    float _eta;
+    double _eta;
+    double _clip_gra;
 
 public:
     RNN();
@@ -51,20 +52,30 @@ public:
         _max_epoch_cnt = max_epoch_cnt;
     }
 
-    void _set_eta(float eta) {
+    void _set_eta(double eta) {
         _eta = eta;
     }
 
-    float _epoch(const std::vector<int>& sample_indexes, int epoch);
+    void _set_clip_gra(double gra) {
+        _clip_gra = gra;
+    }
+
+    double _epoch(const std::vector<int>& sample_indexes, int epoch);
     
-    void _backward(const matrix_float& feature,
-        const matrix_float& label,
-        const matrix_float& hidden_values,
-        const matrix_float& output_values);
+    void _backward(const matrix_double& feature,
+        const matrix_double& label,
+        const matrix_double& hidden_values,
+        const matrix_double& output_values);
     
-    void _forward(const matrix_float& feature,
-        matrix_float& hidden_values,
-        matrix_float& output_values);
+    void _forward(const matrix_double& feature,
+        matrix_double& hidden_values,
+        matrix_double& output_values);
+
+    void _push_feature(const matrix_double& feature,
+        const matrix_double& label) {
+        _train_x_features.push_back(feature);
+        _train_y_labels.push_back(label);
+    }
 
     void _load_feature_data();
     void _train();

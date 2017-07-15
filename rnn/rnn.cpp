@@ -5,76 +5,50 @@
 #include <iostream>
 #include <math.h>
 #include <fstream>
+#include "util.h"
 
 namespace sub_dl {
 
-template <typename T>
-void gradident_clip(Matrix<T>& matrix) {
-    for (size_t i = 0; i < matrix._x_dim; i++) {
-        for (size_t j = 0; j < matrix._y_dim; j++) {
-            if (matrix[i][j] > 5.0 || matrix[i][j] < -5.0) {
-                matrix[i][j] /= 10.0;
+
+void clip_values(Matrix<double>& values) {
+    
+    double v = 0.0;
+    for (int i = 0; i < values._x_dim; i++) {
+        for (int j = 0; j < values._y_dim; j++) {
+            v += values[i][j] * values[i][j];
+        }
+    }
+    if (v > values._x_dim * values._y_dim * 10000) {
+        double rate = values._x_dim * values._y_dim * 10000 / v;
+        for (int i = 0; i < values._x_dim; i++) {
+            for (int j = 0; j < values._y_dim; j++) {
+                values[i][j] *= rate;
             }
         }
     }
 }
 
-float tanh(float x) {
-    return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
-}
-
-float sigmoid(float x) {
-    return 1.0 / (1 + exp(-x));
-}
-
-template <typename T>
-Matrix<T> tanh_m(const Matrix<T>& matrix) {
-    Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
-    for (size_t i = 0; i < matrix._x_dim; i++) {
-        for (size_t j = 0; j < matrix._y_dim; j++) {
-            ret_val[i][j] = tanh(matrix[i][j]);
+std::string merge(const Matrix<double>& output_val, int wordseg) {
+    std::string ret = "";
+    for (int i = 0; i < output_val._x_dim; i++) {
+        int d = 0;
+        double val = 0.0;
+        for (int j = output_val._y_dim; j >= 1; j--) {
+            if (val < output_val[i][j - 1]) {
+                val = output_val[i][j - 1];
+                d = j;
+            }
         }
+        ret += char('0' + d);
+        ret += "_";
     }
-    return ret_val;
+    return ret;
 }
 
-template <typename T>
-Matrix<T> tanh_m_diff(const Matrix<T>& matrix) {
-    Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
-    for (size_t i = 0; i < matrix._x_dim; i++) {
-        for (size_t j = 0; j < matrix._y_dim; j++) {
-            ret_val[i][j] = 1 - tanh(matrix[i][j]) * tanh(matrix[i][j]);
-        }
-    }
-    return ret_val;
-}
-
-template <typename T>
-Matrix<T> sigmoid_m(const Matrix<T>& matrix) {
-    Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
-    for (size_t i = 0; i < matrix._x_dim; i++) {
-        for (size_t j = 0; j < matrix._y_dim; j++) {
-            ret_val[i][j] = sigmoid(matrix[i][j]);
-        }
-    }
-    return ret_val;
-}
-
-template <typename T>
-Matrix<T> sigmoid_m_diff(const Matrix<T>& matrix) {
-    Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
-    for (size_t i = 0; i < matrix._x_dim; i++) {
-        for (size_t j = 0; j < matrix._y_dim; j++) {
-            ret_val[i][j] = matrix[i][j] * (1 - matrix[i][j]);
-        }
-    }
-    return ret_val;
-}
-
-int merge(const Matrix<float>& output_val) {
+int merge(const Matrix<double>& output_val) {
     int val = 0;
     int d = 1;
-    for (int i = 8; i >= 1; i--) {
+    for (int i = output_val._x_dim; i >= 1; i--) {
         val += int(output_val[i - 1][0] + 0.5) * pow(2, i - 1);
     }
     return val;
@@ -101,53 +75,56 @@ RNN::RNN(int feature_dim, int hidden_dim, int output_dim) :
     _output_bias.assign_val();
 }
 
-void RNN::_forward(const matrix_float& feature,
-    matrix_float& hidden_values, 
-    matrix_float& output_values) {
+void RNN::_forward(const matrix_double& feature,
+    matrix_double& hidden_values, 
+    matrix_double& output_values) {
         
     int time_step_cnt = feature._x_dim;
-    _output_values.resize(time_step_cnt, _output_dim);
-    _hidden_values.resize(time_step_cnt, _hidden_dim);    
-    matrix_float pre_hidden_vals(1, _hidden_dim);
+    output_values.resize(time_step_cnt, _output_dim);
+    hidden_values.resize(time_step_cnt, _hidden_dim);    
+    matrix_double pre_hidden_vals(1, _hidden_dim);
 
     for (int t = 0; t < time_step_cnt; t++) {
         // h_t
-        const matrix_float& xt = feature._R(t);
+        const matrix_double& xt = feature._R(t);
         // net_h_t = xt * v + h_{t-1} * u + b_h
-        matrix_float net_h_vals = xt * _input_hidden_weights + pre_hidden_vals * _hidden_weights + _hidden_bias;
+        matrix_double net_h_vals = xt * _input_hidden_weights + pre_hidden_vals * _hidden_weights + _hidden_bias;
+        //net_h_vals._display("net_h_vals");
         // out_h_t = sigmoid(net_h_t)
+        // clip_values(net_h_vals);
         pre_hidden_vals = tanh_m(net_h_vals);
         // output_h_t = out_h_t * W + b_o
-        matrix_float o_vals = pre_hidden_vals * _hidden_output_weights + _output_bias;
-        matrix_float output_vals = sigmoid_m(o_vals);
+        matrix_double o_vals = pre_hidden_vals * _hidden_output_weights + _output_bias;
+        matrix_double output_vals = sigmoid_m(o_vals);
         output_values.set_row(t, output_vals);
         hidden_values.set_row(t, pre_hidden_vals);
-    } 
+    }
+
 }
 
-void RNN::_backward(const matrix_float& feature,
-    const matrix_float& label,
-    const matrix_float& hidden_values, 
-    const matrix_float& output_values) {
+void RNN::_backward(const matrix_double& feature,
+    const matrix_double& label,
+    const matrix_double& hidden_values, 
+    const matrix_double& output_values) {
 
     int time_step_cnt = label._x_dim;
     // error back propogation
-    matrix_float nxt_hidden_error(1, _hidden_dim);
-    matrix_float delta_hidden_output_weights(_hidden_output_weights._x_dim, 
+    matrix_double nxt_hidden_error(1, _hidden_dim);
+    matrix_double delta_hidden_output_weights(_hidden_output_weights._x_dim, 
         _hidden_output_weights._y_dim);
-    matrix_float delta_input_hidden_weights(_input_hidden_weights._x_dim,
+    matrix_double delta_input_hidden_weights(_input_hidden_weights._x_dim,
         _input_hidden_weights._y_dim);
-    matrix_float delta_hidden_weights(_hidden_weights._x_dim,
+    matrix_double delta_hidden_weights(_hidden_weights._x_dim,
         _hidden_weights._y_dim);
-    matrix_float delta_hidden_bias(_hidden_bias._x_dim, _hidden_bias._y_dim);
-    matrix_float delta_output_bias(_output_bias._x_dim, _output_bias._y_dim);
+    matrix_double delta_hidden_bias(_hidden_bias._x_dim, _hidden_bias._y_dim);
+    matrix_double delta_output_bias(_output_bias._x_dim, _output_bias._y_dim);
     for (int t = time_step_cnt - 1; t >= 0; t--) {
         // output_error = (o_t - y_t) * f'(o_t)
-        matrix_float output_error = (output_values._R(t) - label._R(t)) \
+        matrix_double output_error = (output_values._R(t) - label._R(t)) \
             .dot_mul(sigmoid_m_diff(output_values._R(t)));
         // hidden_error = 
         // (output_error * V_jk + nxt_hidden_error * U_jr) dot_multiply f'(hidden_values[t-1])
-        matrix_float hidden_error = (output_error * _hidden_output_weights._T() + 
+        matrix_double hidden_error = (output_error * _hidden_output_weights._T() + 
             nxt_hidden_error * _hidden_weights._T()) \
             .dot_mul(tanh_m_diff(hidden_values._R(t)));
         //_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error * eta);
@@ -156,45 +133,61 @@ void RNN::_backward(const matrix_float& feature,
             output_error);
         //_input_hidden_weights.add(feature._R(t)._T() * hidden_error * eta);
         delta_input_hidden_weights.add(feature._R(t)._T() * hidden_error);
+
         if (t > 0) {
             //_hidden_weights.add(_hidden_values._R(t - 1)._T() * hidden_error * eta); 
             delta_hidden_weights.add(hidden_values._R(t - 1)._T() * hidden_error);
         }
         delta_hidden_bias.add(hidden_error);
         delta_output_bias.add(output_error);
+        
+        //gradident_clip(delta_hidden_output_weights);
+        //gradident_clip(delta_input_hidden_weights);
+        //gradident_clip(delta_hidden_weights);
+        //gradident_clip(delta_hidden_bias);
+        //gradident_clip(delta_output_bias);
+        
         nxt_hidden_error = hidden_error; 
     }
+    gradident_clip(delta_hidden_output_weights, _clip_gra);
+    gradident_clip(delta_input_hidden_weights, _clip_gra);
+    gradident_clip(delta_hidden_weights, _clip_gra);
+    gradident_clip(delta_hidden_bias, _clip_gra);
+    gradident_clip(delta_output_bias, _clip_gra);
     // weight update
     _hidden_output_weights.add(delta_hidden_output_weights * _eta);
     _input_hidden_weights.add(delta_input_hidden_weights * _eta);
     _hidden_weights.add(delta_hidden_weights * _eta);
     _hidden_bias.add(delta_hidden_bias * _eta);
     _output_bias.add(delta_output_bias * _eta);
-    gradident_clip(_hidden_output_weights);
-    gradident_clip(_input_hidden_weights);
-    gradident_clip(_hidden_weights);
-    gradident_clip(_hidden_bias);
-    gradident_clip(_output_bias);
 }
 
 
-float RNN::_epoch(const std::vector<int>& sample_indexes, int epoch) {
+double RNN::_epoch(const std::vector<int>& sample_indexes, int epoch) {
 
-    float cost = 0.0;
-    int val1, val2;
+    double cost = 0.0;
+    std::string val1, val2;
+    //double val1, val2;
     for (size_t i = 0; i < sample_indexes.size(); i++) {
-        const matrix_float& feature = _train_x_features[sample_indexes[i]];
-        const matrix_float& label = _train_y_labels[sample_indexes[i]];
+        const matrix_double& feature = _train_x_features[sample_indexes[i]];
+        const matrix_double& label = _train_y_labels[sample_indexes[i]];
         _forward(feature, _hidden_values, _output_values);
-        val1 = merge(label);
-        val2 = merge(_output_values);
+        val1 = merge(label, 1);
+        val2 = merge(_output_values, 1);
+        //val1 = merge(label);
+        //val2 = merge(_output_values);
         // calc error
-        matrix_float diff_val = label - _output_values;
-        cost += diff_val.dot_mul(diff_val).sum() * 0.5;
+        matrix_double diff_val = label - _output_values;
+        cost += diff_val.dot_mul(diff_val).sum() * 0.5 / feature._x_dim;
         _backward(feature, label, _hidden_values, _output_values);
     }
-    std::cout << "Epoch " << val1 << " " << val2 << " " << cost << std::endl;
-    return cost / sample_indexes.size();
+    cost /= sample_indexes.size();
+    if (epoch % 10 == 0) {
+        std::cout << "Epoch " << epoch << ":" << cost << " " << val1 << " " << val2 << std::endl;
+        std::cout << val1 << std::endl;
+        std::cout << val2 << std::endl;
+    }
+    return cost;
 }
 
 void RNN::_load_feature_data() {
@@ -202,8 +195,8 @@ void RNN::_load_feature_data() {
     // load data
     std::ifstream fis("data");
     for (size_t i = 0; i < 12500; i++) {    
-        matrix_float x(8, _feature_dim);
-        matrix_float y(8, _output_dim);
+        matrix_double x(8, _feature_dim);
+        matrix_double y(8, _output_dim);
         int sum = 0;
         for (size_t j = 0; j < _feature_dim; j ++) {
             int v = rand() % 128;
@@ -244,22 +237,23 @@ void RNN::_load_feature_data() {
 void RNN::_train() {
 
     // load x
-    _load_feature_data();
-    _max_epoch_cnt = 10;
-    int batch_size = 100;
+    // _load_feature_data();
+    _max_epoch_cnt = 100;
+    int batch_size = 1;
     for (size_t epoch = 0; epoch < _max_epoch_cnt; epoch++) {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10000; i++) {
             std::vector<int> sample_indexes;
             for (int j = i * batch_size; j < (i + 1) * batch_size; j++) {
                 sample_indexes.push_back(j);
             }
-            _epoch(sample_indexes, epoch);
+            _epoch(sample_indexes, i);
         }
     }
 }
 
 }
 
+/*
 using namespace sub_dl;
 
 int main() {
@@ -269,3 +263,4 @@ int main() {
     rnn->_load_feature_data();
     rnn->_train();
 }
+*/

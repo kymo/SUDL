@@ -9,7 +9,19 @@
 
 namespace sub_dl {
 
-#define uniform_plus_minus_one ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 )  //均匀随机分布
+
+#define uniform_plus_minus_one ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) 
+
+enum {
+    AVG_POOLING = 0,
+    MAX_POOLING
+} pooling_type;
+
+enum {
+    FULL = 0,
+    SAME,
+    VALID
+} conv2_type;
 
 template <typename T>
 void alloc_matrix(T** &_val, int r, int c) {
@@ -242,6 +254,20 @@ public:
         }
         return ret_val;
     }
+    
+    T avg() const {
+        if (_x_dim == 0 || _y_dim == 0) {
+            std::cerr << "Error when calculate avg of the matrix!" << std::endl;
+            exit(1);
+        }
+        T ret_val = 0.0;
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                ret_val += _val[i][j];
+            }
+        }
+        return ret_val / (_x_dim * _y_dim);
+    }
 
     Matrix<T> _R(int r) const {
         if (_x_dim <= r) {
@@ -304,6 +330,81 @@ public:
         }
         return t_matrix;
     }
+
+    Matrix<T> local(int r, int c, int rlen, int clen) const {
+        if (r + rlen > _x_dim || c + clen > _y_dim) {
+            cerr << "Error when get local data [ size not match!]" << std::endl;
+            exit(1);
+        }
+        Matrix<T> t_matrix(rlen, clen);
+        for (int i = 0; i < rlen; i++) {
+            for (int j = 0; j < clen; j++) {
+                t_matrix[i][j] = _val[i + r][j + c];
+            }
+        }
+        return t_matrix;
+    }
+
+    // for CNN
+    Matrix<T> conv(const Matrix<T>& kernel) const {
+        if (kernel._x_dim > _x_dim || kernel._y_dim > _y_dim) {
+            cerr << "Error when conv [size not match!]" << std::endl;
+            exit(1);
+        }
+        Matrix<T> t_matrix(_x_dim - kernel._x_dim + 1,
+            _y_dim - kernel._y_dim + 1);
+        for (int i = 0; i < t_matrix._x_dim; i++) {
+            for (int j = 0; j < t_matrix._y_dim; j++) {
+                t_matrix[i][j] = kernel.dot_mul(local(i, j, kernel._x_dim, kernel._y_dim)).sum();
+            }
+        }
+        return t_matrix;
+    }
+    // for pooling
+    Matrix<T> down_sample(int pooling_x_dim, int pooling_y_dim, int sample_type) {
+        if (_x_dim % pooling_x_dim != 0 || _y_dim % pooling_y_dim != 0) {
+            cerr << "Error when down_sample [size not match!]" << std::endl;
+            exit(1);
+        }
+        Matrix<T> t_matrix(_x_dim / pooling_x_dim, 
+            _y_dim / pooling_y_dim);
+        for (int i = 0; i < t_matrix._x_dim; i++) {
+            for (int j = 0; j < t_matrix._y_dim; j++) {
+                if (sample_type == AVG_POOLING) {
+                    t_matrix[i][j] = local(i * pooling_x_dim, 
+                        j * pooling_y_dim, 
+                        pooling_x_dim, 
+                        pooling_y_dim).avg();
+                }
+            }
+        }
+        return t_matrix;
+    }
+
+    Matrix<T> rotate_180(const Matrix<T>& mat) {
+        Matrix<T> t_matrix = mat._T();
+        for (int i = 0; i < t_matrix._x_dim.size() / 2; i++) {
+            int cos_idx = t_matrix._x_dim - 1 - i;
+            t_matrix[i][i] = t_matrix[cos_idx][cos_idx];
+        }
+        return t_matrix;
+    }
+
+    // conv2d just like what the matlab do
+    Matrix<T> conv2d(const Matrix<T>& kernel, int shape) {
+        Matrix<T> dst_mat(_x_dim + kernel._x_dim - 1,
+            _y_dim + kernel._y_dim - 1);
+        Matrix<T> full_mat(_x_dim + 2 * kernel._x_dim - 2,
+            _y_dim + 2 * kernel._y_dim - 2);
+        for (int i = 0; i < _x_dim; i++) {
+            for (int j = 0; j < _y_dim; j++) {
+                full_mat[i + kernel._x_dim - 1][j + kernel._y_dim - 1] = 
+                    _val[i][j];
+            }
+        }
+        dst_mat = full_mat.conv(kernel.rotate_180);
+    }
+
 };
 
 typedef Matrix<float> matrix_float;

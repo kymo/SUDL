@@ -140,15 +140,12 @@ double RNN::_epoch(const std::vector<int>& sample_indexes, int epoch) {
 
     double cost = 0.0;
     std::string val1, val2;
-    //double val1, val2;
     for (size_t i = 0; i < sample_indexes.size(); i++) {
         const matrix_double& feature = _train_x_features[sample_indexes[i]];
         const matrix_double& label = _train_y_labels[sample_indexes[i]];
         _forward(feature, _hidden_values, _output_values);
         val1 = merge(label, 1);
         val2 = merge(_output_values, 1);
-        //val1 = merge(label);
-        //val2 = merge(_output_values);
         // calc error
         matrix_double diff_val = label - _output_values;
         cost += diff_val.dot_mul(diff_val).sum() * 0.5 / feature._x_dim;
@@ -226,14 +223,3 @@ void RNN::_train() {
 
 }
 
-/*
-using namespace sub_dl;
-
-int main() {
-    RNN *rnn = new RNN(2, 16, 1);
-    rnn->_set_epoch_cnt(100);
-    rnn->_set_eta(-0.1);
-    rnn->_load_feature_data();
-    rnn->_train();
-}
-*/

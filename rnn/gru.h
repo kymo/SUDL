@@ -39,6 +39,8 @@ private:
 
     matrix_double _hidden_output_weights;
     matrix_double _output_bias;
+    matrix_double _delta_hidden_output_weights;
+    matrix_double _delta_output_bias;
 
     matrix_double _output_values;
     matrix_double _hidden_values;

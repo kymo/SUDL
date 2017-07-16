@@ -286,18 +286,14 @@ void LSTM::_backward(const matrix_double& feature,
 }
 
 double LSTM::_epoch(const std::vector<int>& sample_indexes, int epoch) {
-
     double cost = 0.0;
     std::string val1, val2;
     for (size_t i = 0; i < sample_indexes.size(); i++) {
         const matrix_double& feature = _train_x_features[sample_indexes[i]];
         const matrix_double& label = _train_y_labels[sample_indexes[i]];
-
         _forward(feature, lstm_layer_values);
-
         val1 = merge(label, 1);
         val2 = merge(lstm_layer_values._output_values, 1);
-        double eta = -0.1;
         // calc error
         matrix_double diff_val = label - lstm_layer_values._output_values;
         cost += diff_val.dot_mul(diff_val).sum() * 0.5 / feature._x_dim;
@@ -360,9 +356,9 @@ void LSTM::_train() {
 
     // load x
     _max_epoch_cnt = 100;
-    int batch_size = 1;
+    int batch_size = 10;
     for (size_t epoch = 0; epoch < _max_epoch_cnt; epoch++) {
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 10000; i++) {
             std::vector<int> sample_indexes;
             for (int j = i * batch_size; j < (i + 1) * batch_size; j++) {
                 sample_indexes.push_back(j);
@@ -374,14 +370,3 @@ void LSTM::_train() {
 
 }
 
-/*
-using namespace sub_dl;
-
-int main() {
-    LSTM *lstm = new LSTM(2, 16, 1);
-    lstm->_set_epoch_cnt(100);
-    lstm->_set_eta(-0.1);
-    lstm->_load_feature_data();
-    lstm->_train();
-}
-*/

@@ -6,8 +6,37 @@
 #include "matrix.h"
 
 namespace sub_dl {
+
 template <typename T>
-void gradident_clip(Matrix<T>& matrix, double clip_gra) {	
+int merge(const Matrix<T>& output_val) {
+    int val = 0;
+    int d = 1;
+    for (int i = 8; i >= 1; i--) {
+        val += int(output_val[i - 1][0] + 0.5) * pow(2, i - 1);
+    }
+    return val;
+}
+
+template <typename T>
+std::string merge(const Matrix<T>& output_val, int wordseg) {
+    std::string ret = "";
+    for (int i = 0; i < output_val._x_dim; i++) {
+        int d = 1;
+        T val = 0.0;
+        for (int j = 0; j < output_val._y_dim; j++) {
+            if (val < output_val[i][j]) {
+                val = output_val[i][j];
+                d = j + 1;
+            }
+        }
+        ret += char('0' + d);
+        ret += "_";
+    }
+    return ret;
+}
+
+template <typename T>
+void gradient_clip(Matrix<T>& matrix, double clip_gra) {	
 	T tot = 0.0;
     for (size_t i = 0; i < matrix._x_dim; i++) {
         for (size_t j = 0; j < matrix._y_dim; j++) {

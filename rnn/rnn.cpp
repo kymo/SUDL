@@ -46,6 +46,8 @@ RNN::RNN(int feature_dim, int hidden_dim, int output_dim) :
     _hidden_output_weights.assign_val();
     _hidden_bias.assign_val();
     _output_bias.assign_val();
+	_hidden_weights._display("_hidden_weights");
+	_hidden_bias._display("_hidden_bias");
 }
 
 void RNN::_forward(const matrix_double& feature,

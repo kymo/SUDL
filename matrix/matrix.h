@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
+#include <time.h>
+#include <math.h>
 
 namespace sub_dl {
 
@@ -68,10 +70,10 @@ public:
     }
 
     void assign_val() {
-        srand((unsigned) time(NULL));
-        for (size_t i = 0; i < _x_dim; i++) {
+		for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
-                _val[i][j] = uniform_plus_minus_one;
+                _val[i][j] = ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) ;
+			//	uniform_plus_minus_one;
             }
         }
     }
@@ -140,6 +142,14 @@ public:
         }
         return t_matrix;
     }
+
+	void operator = (int val) const {
+		for (int i = 0; i < _x_dim; i++) {
+			for (int j = 0; j < _y_dim; j++) {
+				_val[i][j] = val;
+			}
+		}
+	}
     
     Matrix<T> operator - (const Matrix<T>& m) const {
         if (m._x_dim != _x_dim || m._y_dim != _y_dim) {
@@ -333,7 +343,7 @@ public:
 
     Matrix<T> local(int r, int c, int rlen, int clen) const {
         if (r + rlen > _x_dim || c + clen > _y_dim) {
-            cerr << "Error when get local data [ size not match!]" << std::endl;
+            std::cerr << "Error when get local data [ size not match!]" << std::endl;
             exit(1);
         }
         Matrix<T> t_matrix(rlen, clen);
@@ -348,7 +358,7 @@ public:
     // for CNN
     Matrix<T> conv(const Matrix<T>& kernel) const {
         if (kernel._x_dim > _x_dim || kernel._y_dim > _y_dim) {
-            cerr << "Error when conv [size not match!]" << std::endl;
+            std::cerr << "Error when conv [size not match!]" << std::endl;
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim - kernel._x_dim + 1,
@@ -363,7 +373,7 @@ public:
     // for pooling
     Matrix<T> down_sample(int pooling_x_dim, int pooling_y_dim, int sample_type) {
         if (_x_dim % pooling_x_dim != 0 || _y_dim % pooling_y_dim != 0) {
-            cerr << "Error when down_sample [size not match!]" << std::endl;
+            std::cerr << "Error when down_sample [size not match!]" << std::endl;
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim / pooling_x_dim, 
@@ -381,18 +391,30 @@ public:
         return t_matrix;
     }
 
-    Matrix<T> rotate_180(const Matrix<T>& mat) {
-        Matrix<T> t_matrix = mat._T();
-        for (int i = 0; i < t_matrix._x_dim.size() / 2; i++) {
+	// up  sampling
+	Matrix<T> up_sample(int up_x_dim, int up_y_dim) const {
+		Matrix<T> t_matrix(_x_dim * up_x_dim, _y_dim * up_y_dim);
+		for (int i = 0; i < t_matrix._x_dim; i++) {
+			for (int j = 0; j < t_matrix._y_dim; j++) {
+				t_matrix[i][j] = _val[i / up_x_dim][j / up_y_dim];
+			}
+		}
+		return t_matrix;
+	}
+
+    Matrix<T> rotate_180() const {
+        Matrix<T> t_matrix = _T();
+        for (int i = 0; i < t_matrix._x_dim / 2; i++) {
             int cos_idx = t_matrix._x_dim - 1 - i;
-            t_matrix[i][i] = t_matrix[cos_idx][cos_idx];
-        }
+        	std::swap(t_matrix[i][i], t_matrix[cos_idx][cos_idx]);
+		}
+
         return t_matrix;
     }
 
     // conv2d just like what the matlab do
-    Matrix<T> conv2d(const Matrix<T>& kernel, int shape) {
-        Matrix<T> dst_mat(_x_dim + kernel._x_dim - 1,
+    Matrix<T> conv2d(const Matrix<T>& kernel, int shape) const {
+		Matrix<T> dst_mat(_x_dim + kernel._x_dim - 1,
             _y_dim + kernel._y_dim - 1);
         Matrix<T> full_mat(_x_dim + 2 * kernel._x_dim - 2,
             _y_dim + 2 * kernel._y_dim - 2);
@@ -402,8 +424,11 @@ public:
                     _val[i][j];
             }
         }
-        dst_mat = full_mat.conv(kernel.rotate_180);
-    }
+		full_mat._display("full_mat");
+		kernel.rotate_180()._display("kernel.rotate_180()");
+        dst_mat = full_mat.conv(kernel.rotate_180());
+    	return dst_mat;
+	}
 
 };
 

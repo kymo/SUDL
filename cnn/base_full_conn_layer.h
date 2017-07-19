@@ -43,11 +43,6 @@ public:
 
 	}
 
-	virtual void _forward(Layer* pre_layer) {};
-
-	virtual void _backward(Layer* nxt_layer) {};
-
-
 };
 
 }

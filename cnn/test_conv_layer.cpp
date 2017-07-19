@@ -1,6 +1,9 @@
 #include "layer.h"
 #include "conv_layer.h"
 #include "pooling_layer.h"
+#include "full_conn_layer.h"
+#include "loss_layer.h"
+#include "cnn.h"
 #include <time.h>
 #include <iostream>
 using namespace sub_dl;
@@ -8,12 +11,12 @@ using namespace sub_dl;
 class InputLayer: public Layer {
 
 public:
-InputLayer() {}
+	InputLayer(const std::vector<matrix_double>&datas) {
+		_data = datas;	
+	}
     void _forward(Layer* pre_layer) {}
     void _backward(Layer* nxt_laery) {}
-    void _add_data(const matrix_double& data) {
-        _data.push_back(data);
-    }
+	void _update_gradient(int opt_type, double learning_rate) {}
 };
 
 void test_conv_layer() {
@@ -29,9 +32,11 @@ void test_conv_layer() {
     for (int i = 0; i < 2; i++) {
         conn_map[0][i] = 1;
     }
-    InputLayer* layer = new InputLayer();
-    layer->_add_data(data);
-    ConvLayer* conv_layer = new ConvLayer(1, 2, 2, 2, 2, 2);
+	std::vector<matrix_double> datas;
+	datas.push_back(data);
+    Layer* layer = new InputLayer(datas);
+    
+	ConvLayer* conv_layer = new ConvLayer(1, 2, 2, 2, 2, 2);
     conv_layer->_set_conn_map(conn_map);
     conv_layer->_forward(layer);
     conv_layer->display();
@@ -50,8 +55,7 @@ void test_conv_layer() {
 }
 
 void test_pooling_layer() {
-
-    InputLayer* layer = new InputLayer();
+	std::vector<matrix_double> datas;
     for (int i = 0; i < 4; i ++) {
         matrix_double data(6, 6);
         for (int j = 0; j < 6; j++) {
@@ -59,9 +63,11 @@ void test_pooling_layer() {
                 data[j][k] = 2 * (rand() % 4) - 4;
             }
         }
-        layer->_add_data(data);
+        //layer->_add_data(data);
         data._display("data");
+		datas.push_back(data);
     }
+	Layer* layer = new InputLayer(datas);
 
     PoolingLayer* pooling_layer = new PoolingLayer(4, 4, 2, 2, 3, 3);
     pooling_layer->_forward(layer);
@@ -98,10 +104,33 @@ void test_pooling_layer() {
     pooling_layer->_backward(conv_layer);
 }
 
+void test_cnn(const char* file_name) {
+	
+	std::vector<Layer*> layers;
+	ConvLayer* conv_layer1 = new ConvLayer(1, 6, 5, 5, 24, 24);
+	layers.push_back(conv_layer1);
+	PoolingLayer* pooling_layer1 = new PoolingLayer(6, 6, 2, 2, 12, 12);
+	layers.push_back(pooling_layer1);
+	ConvLayer* conv_layer2 = new ConvLayer(6, 8, 5, 5, 8, 8);
+	layers.push_back(conv_layer2);
+	PoolingLayer* pooling_layer2 = new PoolingLayer(8, 8, 2, 2, 4, 4);
+	layers.push_back(pooling_layer2);
+	ConvLayer* conv_layer3 = new ConvLayer(8, 16, 3, 3, 2, 2);
+	layers.push_back(conv_layer3);
+	FullConnLayer* full_conn_layer = new FullConnLayer(64, 10);
+	layers.push_back(full_conn_layer);
+	Layer* loss_layer = new MeanSquareLossLayer();
+	CNN*cnn = new CNN();
+	cnn->build_cnn(layers);
+	cnn->load_data(file_name);
+	
+}
 
-int main() {
+int main(int argc, char*argv[]) {
     srand((unsigned)time(NULL));
-    test_conv_layer();    
-   // test_pooling_layer();
+    // test_conv_layer();    
+    // test_pooling_layer();
+	test_cnn(argv[1]);
+
     return 0;
 }

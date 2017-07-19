@@ -64,4 +64,11 @@ void PoolingLayer::_backward(Layer* nxt_layer) {
     }
 }
 
+void PoolingLayer::_update_gradient(int opt_type, double learning_rate) {
+	if (opt_type == SGD) {
+		_pooling_weights.add(_delta_pooling_weights * learning_rate);
+		_pooling_bias.add(_delta_pooling_bias * learning_rate);
+	}
+}
+
 }

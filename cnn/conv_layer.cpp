@@ -32,6 +32,8 @@ ConvLayer::ConvLayer(int input_dim, int output_dim, int kernel_x_dim, int kernel
     _conv_bias.resize(1, _output_dim);
     _conv_bias.assign_val();
     _delta_conv_bias.resize(1, _output_dim);
+	_conn_map.resize(_input_dim, _output_dim);
+	_conn_map.resize(1);
     _type = CONV;
 
 }
@@ -117,5 +119,13 @@ void ConvLayer::_backward(Layer* nxt_layer) {
         _delta_conv_bias[0][i] = _errors[i].sum();
     }
 }
+
+void ConvLayer::_update_gradient(int opt_type, double learning_rate) {
+	if (opt_type == SGD) {
+		_conv_kernels.add(_delta_conv_kernels * learning_rate);
+		_conv_bias.add(_delta_conv_bias * learning_rate);
+	}
+}
+
 
 }

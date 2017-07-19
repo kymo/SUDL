@@ -27,13 +27,14 @@ void FullConnLayer::_backward(Layer* nxt_layer) {
 	matrix_double error;
 	if (nxt_layer->_type == LOSS) {
 		error = nxt_layer->_errors[0].dot_mul(sigmoid_m_diff(_data[0]));
-	} else if (nxt_layer->_type == FULL) {
+	} else if (nxt_layer->_type == FULL_CONN) {
 		BaseFullConnLayer* full_conn_layer = (BaseFullConnLayer*) nxt_layer;
 		error = full_conn_layer->_errors[0] 
 			* full_conn_layer->_full_conn_weights
 			.dot_mul(sigmoid_m_diff(_data[0]));
 	}
-
+	_delta_full_conn_weights = _data[0]._T() * nxt_layer->_errors[0];
+	_delta_full_conn_bias = nxt_layer->_errors[0];
 	_errors.push_back(error);	
 }
 }

@@ -15,7 +15,11 @@ enum {
     FULL_CONN,
 	INPUT,
 	LOSS,
-};
+} layer_type;
+
+enum {
+	SGD = 0,
+} opt_type;
 
 class Layer {
 
@@ -23,8 +27,8 @@ public:
 
 	std::vector<matrix_double> _data;
     std::vector<matrix_double> _errors;
-    std::vector<matrix_double> _weights;
-    int _type;
+    
+	int _type;
     
     int _feature_x_dim;
     int _feature_y_dim;
@@ -34,7 +38,7 @@ public:
 
     virtual void _forward(Layer* pre_layer) = 0;
     virtual void _backward(Layer* nxt_layer) = 0;
-
+	virtual void _update_gradient(int opt_type, double learning_rate) = 0;
 };
 
 /*

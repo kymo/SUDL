@@ -11,7 +11,6 @@
 
 namespace sub_dl {
 
-
 #define uniform_plus_minus_one ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) 
 
 enum {
@@ -250,7 +249,7 @@ public:
         }
         for (size_t i = 0; i < _x_dim; ++i) {
             for (size_t j = 0; j < _y_dim; ++j) {
-                _val[i][j] += m[i][j];
+                _val[i][j] = _val[i][j] + m[i][j];
             }
         }
     }

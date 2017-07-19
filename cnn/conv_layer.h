@@ -36,6 +36,9 @@ public:
     void _forward(Layer* pre_layer);
 
     void _backward(Layer* nxt_layer);
+	
+	void _update_gradient(int opt_type, double learning_rate);
+
 };
 
 }

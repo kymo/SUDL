@@ -2,7 +2,7 @@ MACRO=DEBUGALL
 CFLAGS+=-pg -w -D$(MACRO)
 	SRCPATH=.
 	INCLUDEPATH=. ../matrix
-	TARGET=test_conv_layer
+	TARGET=test_conv_layer 
 SOURCES=$(wildcard $(SRCPATH)/*.cpp)
 
 #OBJS := $(patsubst %.cpp, %.o,$(SOURCES))

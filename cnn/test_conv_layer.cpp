@@ -101,7 +101,7 @@ void test_pooling_layer() {
 
 int main() {
     srand((unsigned)time(NULL));
-    // test_conv_layer();    
-    test_pooling_layer();
+    test_conv_layer();    
+   // test_pooling_layer();
     return 0;
 }

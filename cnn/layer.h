@@ -12,16 +12,15 @@ namespace sub_dl {
 enum {
     CONV = 0,
     POOL,
-    FULLCONN,
+    FULL_CONN,
 	INPUT,
 	LOSS,
 };
 
 class Layer {
 
-
 public:
-    
+
 	std::vector<matrix_double> _data;
     std::vector<matrix_double> _errors;
     std::vector<matrix_double> _weights;

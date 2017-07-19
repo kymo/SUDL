@@ -112,6 +112,27 @@ Matrix<T> sigmoid_m_diff(const Matrix<T>& matrix) {
     return ret_val;
 }
 
+template <typename T>
+Matrix<T> exp_m(const Matrix<T>& matrix) {
+    Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
+    for (size_t i = 0; i < matrix._x_dim; i++) {
+        for (size_t j = 0; j < matrix._y_dim; j++) {
+            ret_val[i][j] = exp(matrix[i][j]);
+        }
+    }
+    return ret_val;
+}
+
+template <typename T>
+Matrix<T> log_m(const Matrix<T>& matrix) {
+    Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
+    for (size_t i = 0; i < matrix._x_dim; i++) {
+        for (size_t j = 0; j < matrix._y_dim; j++) {
+            ret_val[i][j] = log(matrix[i][j]);
+        }
+    }
+    return ret_val;
+}
 }
 
 #endif

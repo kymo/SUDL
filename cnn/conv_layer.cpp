@@ -14,10 +14,12 @@ ConvLayer::ConvLayer(int input_dim, int output_dim, int kernel_x_dim, int kernel
     _kernel_y_dim = kernel_y_dim;
     _feature_x_dim = feature_x_dim;
     _feature_y_dim = feature_y_dim;
-    _conv_kernels.resize(_input_dim, _output_dim);
+
     _feature_x_dim = feature_x_dim;
     _feature_y_dim = feature_y_dim;
 
+    _conv_kernels.resize(_input_dim, _output_dim);
+    _delta_conv_kernels.resize(_input_dim, _output_dim);
     for (int i = 0; i < _input_dim;i ++) {
         for (int j = 0; j < _output_dim; j++) {    
             matrix_double kernel(_kernel_x_dim, _kernel_y_dim);
@@ -25,8 +27,9 @@ ConvLayer::ConvLayer(int input_dim, int output_dim, int kernel_x_dim, int kernel
             _conv_kernels[i][j] = kernel;
         }
     }
-    _bias.resize(1, _output_dim);
-    _bias.assign_val();
+    _conv_bias.resize(1, _output_dim);
+    _conv_bias.assign_val();
+    _delta_conv_bias.resize(1, _output_dim);
     _type = CONV;
 
 }
@@ -42,42 +45,47 @@ void ConvLayer::display() {
     for (int i = 0; i < _input_dim;i ++) {
         for (int j = 0; j < _output_dim;j ++) {
             std::cout << "kernel " << i << " " << j << std::endl;
-			if (_conn_map[i][j]) {
-            	_conv_kernels[i][j]._display();
-			} else {
-				std::cout << "NULL" << std::endl;
-			}
+            if (_conn_map[i][j]) {
+                _conv_kernels[i][j]._display();
+            } else {
+                std::cout << "NULL" << std::endl;
+            }
         }
     }
     std::cout << "-----------bias-------" << std::endl;
-    _bias._display();
+    _conv_bias._display();
 }
 
-void ConvLayer::_forward(Layer* _pre_layer) {
+void ConvLayer::_forward(Layer* pre_layer) {
+    // save the pre layer pointer for backward weight update
+    _pre_layer = pre_layer;
     for (int i = 0; i < _output_dim; i++) {
         matrix_double feature_map(_feature_x_dim, _feature_y_dim);
         for (int j = 0; j < _input_dim; j++) {
             if (_conn_map[j][i]) {
-                feature_map = feature_map + _pre_layer->_data[j].conv(_conv_kernels[j][i]);
+                feature_map = feature_map + pre_layer->_data[j].conv(_conv_kernels[j][i]);
             }
         }
-		feature_map._display("-featuremap-");
-        _data.push_back(sigmoid_m(feature_map + _bias[0][i]));
+        feature_map._display("-featuremap-");
+        _data.push_back(sigmoid_m(feature_map + _conv_bias[0][i]));
     }
 }
 
-void ConvLayer::_backward(Layer* _nxt_layer) {
-    if (_nxt_layer->_type == POOL) {
-        const PoolingLayer* pooling_layer = (PoolingLayer*) _nxt_layer;
+void ConvLayer::_backward(Layer* nxt_layer) {
+    // _nxt_layer = nxt_layer;
+    if (nxt_layer->_type == POOL) {
+        const PoolingLayer* pooling_layer = (PoolingLayer*)(nxt_layer);
         for (int i = 0; i < _output_dim; i++) {
-            matrix_double t1 = pooling_layer->_errors[i]
+            matrix_double up_delta = pooling_layer->_errors[i]
                 .up_sample(pooling_layer->_pooling_x_dim, 
                 pooling_layer->_pooling_y_dim);
-            t1._display("t1");
-            matrix_double error = t1.dot_mul(sigmoid_m_diff(_data[i]))
+            matrix_double error = up_delta.dot_mul(sigmoid_m_diff(_data[i]))
                 * pooling_layer->_pooling_weights[0][i];
-            std::cout << "pooling weights:" << pooling_layer->_pooling_weights[0][i] << std::endl;
-            error._display("error");
+            _delta_conv_bias[0][i] = error.sum();
+               
+            // update kernel weights
+
+            // update errors
             _errors.push_back(error);
         }
     }

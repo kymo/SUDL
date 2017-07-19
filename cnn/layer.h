@@ -30,8 +30,11 @@ public:
     int _feature_x_dim;
     int _feature_y_dim;
 
-    virtual void _forward(Layer* _pre_layer) = 0;
-    virtual void _backward(Layer* _nxt_layer) = 0;
+	Layer* _pre_layer;
+	Layer* _nxt_layer;
+
+    virtual void _forward(Layer* pre_layer) = 0;
+    virtual void _backward(Layer* nxt_layer) = 0;
 
 };
 

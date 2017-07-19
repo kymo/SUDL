@@ -76,7 +76,7 @@ void GRU::_forward(const matrix_double& feature) {
         matrix_double output_value = sigmoid_m(hidden_value * _hidden_output_weights
             + _output_bias);
 
-		pre_hidden_vals = hidden_value;
+        pre_hidden_vals = hidden_value;
         _output_values.set_row(t, output_value);
         _hidden_values.set_row(t, hidden_value);
         _ug_values.set_row(t, ug_value);
@@ -112,7 +112,7 @@ void GRU::_backward(const matrix_double& feature,
         // output_error = (o_t - y_t) * f'(o_t)
         matrix_double output_error = (_output_values._R(t) - label._R(t)) \
             .dot_mul(sigmoid_m_diff(_output_values._R(t)));
-		output_error._display("output_error");
+        output_error._display("output_error");
 
         // hidden_error = 
         // (output_error * V_jk + nxt_hidden_error * U_jr) dot_multiply f'(hidden_values[t-1])
@@ -137,25 +137,25 @@ void GRU::_backward(const matrix_double& feature,
 
         matrix_double rg_error(1, _hidden_dim);
         if (t > 0) {
-			rg_error = newh_error.dot_mul(_ug_values._R(t))
-				.dot_mul(tanh_m_diff(_newh_values._R(t)))
+            rg_error = newh_error.dot_mul(_ug_values._R(t))
+                .dot_mul(tanh_m_diff(_newh_values._R(t)))
                 .dot_mul(_hidden_values._R(t - 1) * _newh_hidden_weights)
                 .dot_mul(sigmoid_m_diff(_rg_values._R(t)));
-		}
-		rg_error._display("rg_error");
+        }
+        rg_error._display("rg_error");
         _delta_ug_input_weights.add(feature._R(t)._T() * ug_error);
-		_delta_ug_bias.add(ug_error);
+        _delta_ug_bias.add(ug_error);
         _delta_rg_input_weights.add(feature._R(t)._T() * rg_error);
-		_delta_rg_bias.add(rg_error);
+        _delta_rg_bias.add(rg_error);
         _delta_newh_input_weights.add(feature._R(t)._T() * newh_error);
-		_delta_newh_bias.add(newh_error);
+        _delta_newh_bias.add(newh_error);
         if (t > 0) {
             _delta_ug_hidden_weights.add(_hidden_values._R(t - 1)._T() * ug_error);
             _delta_rg_hidden_weights.add(_hidden_values._R(t - 1)._T() * ug_error);
             _delta_newh_hidden_weights.add((_hidden_values._R(t - 1).dot_mul(_rg_values._R(t)))._T() * ug_error);
         }
-		_delta_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error);
-		_delta_output_bias.add(output_error);
+        _delta_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error);
+        _delta_output_bias.add(output_error);
         nxt_hidden_error = mid_hidden_error;
         nxt_ug_error = ug_error;
         nxt_rg_error = rg_error;
@@ -175,7 +175,7 @@ void GRU::_backward(const matrix_double& feature,
     gradient_clip(_delta_hidden_output_weights, _clip_gra);
     gradient_clip(_delta_output_bias, _clip_gra);
     
-	_ug_input_weights.add(_delta_ug_input_weights * _eta);
+    _ug_input_weights.add(_delta_ug_input_weights * _eta);
     _ug_hidden_weights.add(_delta_ug_hidden_weights * _eta);
     _ug_bias.add(_delta_ug_bias * _eta);
     _rg_input_weights.add(_delta_rg_input_weights * _eta);
@@ -195,15 +195,15 @@ double GRU::_epoch(const std::vector<int>& sample_indexes, int epoch) {
     double cost = 0.0;
     std::string val1, val2;
     // double val1, val2;
-	for (size_t i = 0; i < sample_indexes.size(); i++) {
+    for (size_t i = 0; i < sample_indexes.size(); i++) {
         const matrix_double& feature = _train_x_features[sample_indexes[i]];
         const matrix_double& label = _train_y_labels[sample_indexes[i]];
         _forward(feature);
         val1 = merge(label, 1);
         val2 = merge(_output_values, 1);
         // calc error
-		// val1 = merge(label);
-		// val2 = merge(_output_values);
+        // val1 = merge(label);
+        // val2 = merge(_output_values);
         matrix_double diff_val = label - _output_values;
         cost += diff_val.dot_mul(diff_val).sum() * 0.5 / feature._x_dim;
         _backward(feature, label);

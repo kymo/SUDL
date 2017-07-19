@@ -51,51 +51,51 @@ void test_conv_layer() {
 
 void test_pooling_layer() {
 
-	InputLayer* layer = new InputLayer();
-	for (int i = 0; i < 4; i ++) {
-		matrix_double data(6, 6);
-		for (int j = 0; j < 6; j++) {
-			for (int k = 0; k < 6; k++) {
-				data[j][k] = 2 * (rand() % 4) - 4;
-			}
-		}
-		layer->_add_data(data);
-		data._display("data");
-	}
+    InputLayer* layer = new InputLayer();
+    for (int i = 0; i < 4; i ++) {
+        matrix_double data(6, 6);
+        for (int j = 0; j < 6; j++) {
+            for (int k = 0; k < 6; k++) {
+                data[j][k] = 2 * (rand() % 4) - 4;
+            }
+        }
+        layer->_add_data(data);
+        data._display("data");
+    }
 
-	PoolingLayer* pooling_layer = new PoolingLayer(4, 4, 2, 2, 3, 3);
-	pooling_layer->_forward(layer);
-	pooling_layer->display();
-	
-	ConvLayer* conv_layer = new ConvLayer(4, 2, 2, 2, 2, 2);
-	
-	int link[4][2] = {{1, 0}, {1, 0}, {0, 1}, {0, 1}};
-	matrix_int conn_map(4, 2);
-	for (int i = 0; i < 4; i++){
-		for (int j = 0; j < 2; j++) {
-			conn_map[i][j] = link[i][j];
-		}
-	}
-	conv_layer->_set_conn_map(conn_map);
-	conv_layer->_forward(pooling_layer);
-	conv_layer->display();
+    PoolingLayer* pooling_layer = new PoolingLayer(4, 4, 2, 2, 3, 3);
+    pooling_layer->_forward(layer);
+    pooling_layer->display();
+    
+    ConvLayer* conv_layer = new ConvLayer(4, 2, 2, 2, 2, 2);
+    
+    int link[4][2] = {{1, 0}, {1, 0}, {0, 1}, {0, 1}};
+    matrix_int conn_map(4, 2);
+    for (int i = 0; i < 4; i++){
+        for (int j = 0; j < 2; j++) {
+            conn_map[i][j] = link[i][j];
+        }
+    }
+    conv_layer->_set_conn_map(conn_map);
+    conv_layer->_forward(pooling_layer);
+    conv_layer->display();
 
-	matrix_double error1(2, 2);
-	for (int i = 0; i < 2; i++) {
-		for (int j = 0; j < 2; j++) {
-			error1[i][j] = (rand() % 10 + 1)/10.0;
-		}
-	}
-	error1._display("error1");
-	conv_layer->_errors.push_back(error1);
-	for (int i = 0; i < 2; i++) {
-		for (int j = 0; j < 2; j++) {
-			error1[i][j] = (rand() % 10 + 1)/10.0;
-		}
-	}
-	error1._display("error2");
-	conv_layer->_errors.push_back(error1);
-	pooling_layer->_backward(conv_layer);
+    matrix_double error1(2, 2);
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            error1[i][j] = (rand() % 10 + 1)/10.0;
+        }
+    }
+    error1._display("error1");
+    conv_layer->_errors.push_back(error1);
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            error1[i][j] = (rand() % 10 + 1)/10.0;
+        }
+    }
+    error1._display("error2");
+    conv_layer->_errors.push_back(error1);
+    pooling_layer->_backward(conv_layer);
 }
 
 
@@ -103,5 +103,5 @@ int main() {
     srand((unsigned)time(NULL));
     // test_conv_layer();    
     test_pooling_layer();
-	return 0;
+    return 0;
 }

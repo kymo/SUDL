@@ -189,10 +189,10 @@ void LSTM::_backward(const matrix_double& feature,
         matrix_double cell_mid_error = hidden_mid_error
             .dot_mul(lstm_layer_values._og_values._R(t))
             .dot_mul(tanh_m_diff(lstm_layer_values._cell_values._R(t)));
-		if (t != seq_len - 1) {
+        if (t != seq_len - 1) {
             cell_mid_error = cell_mid_error + nxt_cell_mid_error.dot_mul(lstm_layer_values._fg_values._R(t + 1));
 
-		}
+        }
         if (_use_peelhole) {
             cell_mid_error = cell_mid_error + nxt_fg_error * _fg_cell_weights._T() 
                 + nxt_ig_error * _ig_cell_weights._T()

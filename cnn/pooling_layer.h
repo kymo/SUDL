@@ -17,16 +17,21 @@ public:
     int _pooling_type; // 0 max_pooling 1 avg_pooling
     matrix_double _pooling_weights;
     matrix_double _pooling_bias;
+    matrix_double _delta_pooling_weights;
+    matrix_double _delta_pooling_bias;
     virtual ~ PoolingLayer() {}
+    
     PoolingLayer() {}
 
-    PoolingLayer(int input_dim, int output_dim, int pooling_x_dim, int pooling_y_dim, int feature_x_dim, int feature_y_dim);
+    PoolingLayer(int input_dim, int output_dim, 
+        int pooling_x_dim, int pooling_y_dim, 
+        int feature_x_dim, int feature_y_dim);
 
-	void display();
-	
-	void _forward(Layer* pre_layer);
+    void display();
     
-	void _backward(Layer* _nxt_layer);
+    void _forward(Layer* pre_layer);
+    
+    void _backward(Layer* _nxt_layer);
 
 };
 

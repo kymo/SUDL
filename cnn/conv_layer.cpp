@@ -26,7 +26,7 @@ ConvLayer::ConvLayer(int input_dim, int output_dim, int kernel_x_dim, int kernel
             matrix_double kernel(_kernel_x_dim, _kernel_y_dim);
             kernel.assign_val();
             _conv_kernels[i][j] = kernel;
-			_delta_conv_kernels[i][j].resize(_kernel_x_dim, _kernel_y_dim);
+            _delta_conv_kernels[i][j].resize(_kernel_x_dim, _kernel_y_dim);
         }
     }
     _conv_bias.resize(1, _output_dim);
@@ -82,40 +82,40 @@ void ConvLayer::_backward(Layer* nxt_layer) {
                 pooling_layer->_pooling_y_dim);
             matrix_double error = up_delta.dot_mul(sigmoid_m_diff(_data[i]))
                 * pooling_layer->_pooling_weights[0][i];
-        	_errors.push_back(error);
+            _errors.push_back(error);
         }
     } else if (nxt_layer->_type == FULL_CONN) {
-		const FullConnLayer* full_conn_layer = (FullConnLayer*)(nxt_layer);
-		for (int i = 0; i < _output_dim; i++) {
-			matrix_double error(_feature_x_dim - _kernel_x_dim + 1,
-				_feature_y_dim - _kernel_y_dim + 1);
-			for (int u = 0; u < error._x_dim; u++) {
-				for (int v = 0; v < error._y_dim; v++) {
-					for (int t = 0; t < full_conn_layer->_output_dim; t++) {
-						error[u][v] += full_conn_layer->_errors[0][0][t] * 
-							full_conn_layer->_full_conn_weights[i * (error._x_dim * error._y_dim) 
-								+ error._y_dim * u + v][t];
-					}
-				}
-			}
-        	_errors.push_back(error);
-		}
-	}
-	for (int i = 0; i < _output_dim; i++) {
-		// update kernel weights
-		for (int j = 0; j < _input_dim; j++) {
-			if (_conn_map[j][i]) {
-				std::cout << "------------" << std::endl;
-				_errors[i]._display("error");
-				_pre_layer->_data[j]._display("data");
-				_delta_conv_kernels[j][i] = _pre_layer->_data[j].conv(_errors[i].rotate_180()).rotate_180();
-				_delta_conv_kernels[j][i]._display("result");
-				std::cout << "------------" << std::endl;
-			}
-		}
-		// update kernel bias
-		_delta_conv_bias[0][i] = _errors[i].sum();
-	}
+        const FullConnLayer* full_conn_layer = (FullConnLayer*)(nxt_layer);
+        for (int i = 0; i < _output_dim; i++) {
+            matrix_double error(_feature_x_dim - _kernel_x_dim + 1,
+                _feature_y_dim - _kernel_y_dim + 1);
+            for (int u = 0; u < error._x_dim; u++) {
+                for (int v = 0; v < error._y_dim; v++) {
+                    for (int t = 0; t < full_conn_layer->_output_dim; t++) {
+                        error[u][v] += full_conn_layer->_errors[0][0][t] * 
+                            full_conn_layer->_full_conn_weights[i * (error._x_dim * error._y_dim) 
+                                + error._y_dim * u + v][t];
+                    }
+                }
+            }
+            _errors.push_back(error);
+        }
+    }
+    for (int i = 0; i < _output_dim; i++) {
+        // update kernel weights
+        for (int j = 0; j < _input_dim; j++) {
+            if (_conn_map[j][i]) {
+                std::cout << "------------" << std::endl;
+                _errors[i]._display("error");
+                _pre_layer->_data[j]._display("data");
+                _delta_conv_kernels[j][i] = _pre_layer->_data[j].conv(_errors[i].rotate_180()).rotate_180();
+                _delta_conv_kernels[j][i]._display("result");
+                std::cout << "------------" << std::endl;
+            }
+        }
+        // update kernel bias
+        _delta_conv_bias[0][i] = _errors[i].sum();
+    }
 }
 
 }

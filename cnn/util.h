@@ -133,6 +133,7 @@ Matrix<T> log_m(const Matrix<T>& matrix) {
     }
     return ret_val;
 }
+
 }
 
 #endif

@@ -25,13 +25,13 @@ PoolingLayer::PoolingLayer(int input_dim, int output_dim, int pooling_x_dim, int
 void PoolingLayer::display() {
     _pooling_weights._display("_pooling_weights");
     _pooling_bias._display("_pooling_bias");
-    std::cout << "-----------pooling output --------" << std::endl;
     for (int i = 0; i < _output_dim; i++) {
         _data[i]._display();
     }
 }
 
 void PoolingLayer::_forward(Layer* pre_layer) {
+	std::vector<matrix_double>().swap(_data);
     _pre_layer = pre_layer;
     for (int i = 0; i < _output_dim; i++) {
         matrix_double up_feature = pre_layer->_data[i]
@@ -43,10 +43,11 @@ void PoolingLayer::_forward(Layer* pre_layer) {
 
 void PoolingLayer::_backward(Layer* nxt_layer) {
     _nxt_layer = nxt_layer;
+	std::vector<matrix_double>().swap(_errors);
     const ConvLayer* conv_layer = (ConvLayer*)(nxt_layer);
     for (int i = 0; i < _output_dim; i++) {
         matrix_double error(_feature_x_dim, _feature_y_dim);
-        for (int j = 0; j < conv_layer->_output_dim; j++) {
+        for (int j = 0; j < _input_dim; j++) {
             if (conv_layer->_conn_map[j][i]) {
                 conv_layer->_errors[i]._display("conv_layer->_errors[i]");
                 conv_layer->_conv_kernels[i][j]._display("conv_layer->_conv_kernels[i][j]");
@@ -61,7 +62,7 @@ void PoolingLayer::_backward(Layer* nxt_layer) {
             .dot_mul(_pre_layer->_data[i].down_sample(_pooling_x_dim, _pooling_y_dim, AVG_POOLING)))
             .sum();
         _delta_pooling_bias[0][i] = error.sum();
-    }
+	}
 }
 
 void PoolingLayer::_update_gradient(int opt_type, double learning_rate) {

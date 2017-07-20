@@ -14,7 +14,7 @@ public:
     matrix_double _full_conn_bias;
     matrix_double _delta_full_conn_weights;
     matrix_double _delta_full_conn_bias;
-
+	matrix_double _pre_layer_data;
 	BaseFullConnLayer() {}
     
 	BaseFullConnLayer(int input_dim, int output_dim) : _input_dim(input_dim),
@@ -34,13 +34,33 @@ public:
 			std::cerr << "Flatten error!" << std::endl;
 			exit(1);
 		}
-		matrix_double t_matrix(1, data.size() * data[0]._x_dim * data[0]._y_dim);
+		int data_size = data.size();
+		int data_x_dim = data[0]._x_dim;
+		int data_y_dim = data[0]._y_dim;
+
+		matrix_double t_matrix(1, data_size * data_x_dim * data_y_dim);
+
 		for (int i = 0; i < t_matrix._y_dim; i++) {
-			int n = i / (data[0]._x_dim * data[0]._y_dim);
-			t_matrix[0][i] = data[n][i / data[0]._y_dim][i % data[0]._y_dim]; 
+			
+			int n = i / (data_x_dim * data_y_dim);
+			int inner_n = i - n * (data_x_dim * data_y_dim);
+			t_matrix[0][i] = data[n][inner_n / data_y_dim][inner_n % data_y_dim]; 
 		}
 		return t_matrix;
 
+	}
+	
+	void _update_gradient(int opt_type, double learning_rate) {
+		if (opt_type == SGD) {
+
+			_data[0]._display("_data");
+			_nxt_layer->_errors[0]._display("error");
+			_full_conn_weights._display(" _full_conn_weights");
+			_delta_full_conn_weights._display("_delta_full_conn_weights");
+
+			_full_conn_weights.add(_delta_full_conn_weights * learning_rate);
+			_full_conn_bias.add(_delta_full_conn_bias * learning_rate);
+		}
 	}
 
 };

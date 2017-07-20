@@ -18,12 +18,6 @@ public:
 	void _forward(Layer* pre_layer);
 	void _backward(Layer* nxt_layer);
 
-	void _update_gradient(int opt_type, double learning_rate) {
-		if (opt_type == SGD) {
-			_full_conn_weights.add(_delta_full_conn_weights * learning_rate);
-			_full_conn_bias.add(_delta_full_conn_bias * learning_rate);
-		}
-	}
 };
 
 }

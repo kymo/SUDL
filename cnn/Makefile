@@ -1,5 +1,5 @@
 MACRO=DEBUGALL
-CFLAGS+=-pg -w -D$(MACRO)
+CFLAGS+=-w -g -std=c++11
 	SRCPATH=.
 	INCLUDEPATH=. ../matrix
 	TARGET=test_conv_layer 
@@ -11,7 +11,7 @@ CFLAGS+=$(foreach dir, $(INCLUDEPATH), -I$(dir))
 
 all: build
 	@echo "Build Done!"
-	@echo $(CFLAGS)
+
 clean:
 	$(RM) $(OBJS) $(TARGET)
 

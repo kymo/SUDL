@@ -5,6 +5,7 @@ namespace sub_dl {
 void FullConnSoftmaxLayer::_forward(Layer* _pre_layer) {
 
 	matrix_double input_data;
+	std::vector<matrix_double>().swap(_data);
 	if (_pre_layer->_type == CONV ||
 		_pre_layer->_type == POOL) {
 		input_data = _flatten(_pre_layer->_data);
@@ -19,6 +20,7 @@ void FullConnSoftmaxLayer::_forward(Layer* _pre_layer) {
 
 void FullConnSoftmaxLayer::_backward(Layer* nxt_layer) {
 
+	std::vector<matrix_double>().swap(_errors);
 	if (nxt_layer->_type == CONV || nxt_layer->_type == POOL) {
 		std::cerr << "Conv or Pooling before full-connected not supported yet!" << std::endl;
 		exit(1);

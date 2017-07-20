@@ -63,9 +63,12 @@ void ConvLayer::display() {
 void ConvLayer::_forward(Layer* pre_layer) {
     // save the pre layer pointer for backward weight update
     _pre_layer = pre_layer;
-    for (int i = 0; i < _output_dim; i++) {
+	pre_layer->_data[0]._display("nihao");
+	std::vector<matrix_double>().swap(_data);
+	for (int i = 0; i < _output_dim; i++) {
         matrix_double feature_map(_feature_x_dim, _feature_y_dim);
         for (int j = 0; j < _input_dim; j++) {
+			pre_layer->_data[j]._display("pre_layer->_data[j]");
             if (_conn_map[j][i]) {
                 feature_map = feature_map + pre_layer->_data[j].conv(_conv_kernels[j][i]);
             }
@@ -76,6 +79,7 @@ void ConvLayer::_forward(Layer* pre_layer) {
 }
 
 void ConvLayer::_backward(Layer* nxt_layer) {
+	std::vector<matrix_double>().swap(_errors);
     if (nxt_layer->_type == POOL) {
         const PoolingLayer* pooling_layer = (PoolingLayer*)(nxt_layer);
         for (int i = 0; i < _output_dim; i++) {
@@ -89,9 +93,8 @@ void ConvLayer::_backward(Layer* nxt_layer) {
     } else if (nxt_layer->_type == FULL_CONN) {
         const FullConnLayer* full_conn_layer = (FullConnLayer*)(nxt_layer);
         for (int i = 0; i < _output_dim; i++) {
-            matrix_double error(_feature_x_dim - _kernel_x_dim + 1,
-                _feature_y_dim - _kernel_y_dim + 1);
-            for (int u = 0; u < error._x_dim; u++) {
+            matrix_double error(_feature_x_dim, _feature_y_dim);
+			for (int u = 0; u < error._x_dim; u++) {
                 for (int v = 0; v < error._y_dim; v++) {
                     for (int t = 0; t < full_conn_layer->_output_dim; t++) {
                         error[u][v] += full_conn_layer->_errors[0][0][t] * 
@@ -100,6 +103,7 @@ void ConvLayer::_backward(Layer* nxt_layer) {
                     }
                 }
             }
+			error._display("error layer type");
             _errors.push_back(error);
         }
     }
@@ -107,12 +111,10 @@ void ConvLayer::_backward(Layer* nxt_layer) {
         // update kernel weights
         for (int j = 0; j < _input_dim; j++) {
             if (_conn_map[j][i]) {
-                std::cout << "------------" << std::endl;
                 _errors[i]._display("error");
                 _pre_layer->_data[j]._display("data");
                 _delta_conv_kernels[j][i] = _pre_layer->_data[j].conv(_errors[i].rotate_180()).rotate_180();
                 _delta_conv_kernels[j][i]._display("result");
-                std::cout << "------------" << std::endl;
             }
         }
         // update kernel bias
@@ -126,6 +128,5 @@ void ConvLayer::_update_gradient(int opt_type, double learning_rate) {
 		_conv_bias.add(_delta_conv_bias * learning_rate);
 	}
 }
-
 
 }

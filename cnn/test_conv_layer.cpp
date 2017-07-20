@@ -7,6 +7,7 @@
 #include <time.h>
 #include <iostream>
 using namespace sub_dl;
+using namespace std;
 
 class InputLayer: public Layer {
 
@@ -104,8 +105,11 @@ void test_pooling_layer() {
     pooling_layer->_backward(conv_layer);
 }
 
-void test_cnn(const char* file_name) {
-	
+void test_cnn(int argc, char*argv[]) {
+	if (argc < 2) {
+		std::cout << "[Usage] ./test_conv_layer train_data" << std::endl;
+		return ;
+	}
 	std::vector<Layer*> layers;
 	ConvLayer* conv_layer1 = new ConvLayer(1, 6, 5, 5, 24, 24);
 	layers.push_back(conv_layer1);
@@ -119,18 +123,19 @@ void test_cnn(const char* file_name) {
 	layers.push_back(conv_layer3);
 	FullConnLayer* full_conn_layer = new FullConnLayer(64, 10);
 	layers.push_back(full_conn_layer);
-	Layer* loss_layer = new MeanSquareLossLayer();
-	CNN*cnn = new CNN();
+	//Layer* loss_layer = new MeanSquareLossLayer();
+	//layers.push_back(loss_layer);
+	CNN<MeanSquareLossLayer> *cnn = new CNN<MeanSquareLossLayer>();
 	cnn->build_cnn(layers);
-	cnn->load_data(file_name);
-	
+	cnn->load_data(argv[1]);
+	cnn->train();
 }
 
 int main(int argc, char*argv[]) {
     srand((unsigned)time(NULL));
     // test_conv_layer();    
     // test_pooling_layer();
-	test_cnn(argv[1]);
+	test_cnn(argc, argv);
 
     return 0;
 }

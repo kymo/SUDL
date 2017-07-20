@@ -39,6 +39,7 @@ public:
     virtual void _forward(Layer* pre_layer) = 0;
     virtual void _backward(Layer* nxt_layer) = 0;
 	virtual void _update_gradient(int opt_type, double learning_rate) = 0;
+	virtual void display() = 0;
 };
 
 /*
@@ -77,6 +78,25 @@ public:
 	}
 };
 */
+
+class DataFeedLayer: public Layer {
+
+public:
+    DataFeedLayer(const std::vector<matrix_double>& data) {
+        _data = data;
+		_type = INPUT;
+    }
+
+    void _forward(Layer* pre_layer) {}
+    void _backward(Layer* nxt_laery) {}
+
+	void _update_gradient(int opt_type, double learning_rate) {}
+	void display() {
+		std::cout << "-----------input layer----------" << std::endl;
+		_data[0]._display("data");
+	}
+};
+
 
 }
 #endif

@@ -20,6 +20,11 @@ public:
 	void _update_gradient(int opt_type, double learning_rate) {
 	}
 
+	void display() {
+		std::cout << "---------loss layer------------" << std::endl;
+		_errors[0]._display("error");
+		_label._display("label");
+	}
 };
 
 class MeanSquareLossLayer : public LossLayer {
@@ -29,12 +34,13 @@ public:
 	MeanSquareLossLayer() {
 
 	}
-	
-    void _backward(Layer* nxt_layer) {
-		std::vector<matrix_double>().swap(_errors);
-        _errors.push_back(_pre_layer->_data[0] - _label);
-    }
-    
+
+	void display() {
+		std::cout << "Layer " << _type << std::endl;
+		_data[0]._display("display");
+		std::cout << "Layer " << _type << " End" << std::endl;
+	}
+
     void _forward(Layer* pre_layer) {
 		std::vector<matrix_double>().swap(_data);
 		_pre_layer = pre_layer;
@@ -44,6 +50,11 @@ public:
         }
         matrix_double minus_result = pre_layer->_data[0] - _label; 
         _data.push_back(minus_result.dot_mul(minus_result) * 0.5);
+    }
+    
+	void _backward(Layer* nxt_layer) {
+		std::vector<matrix_double>().swap(_errors);
+        _errors.push_back(_pre_layer->_data[0] - _label);
     }
 
 };

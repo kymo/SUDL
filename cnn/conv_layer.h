@@ -25,10 +25,20 @@ public:
     virtual ~ConvLayer() {}
     ConvLayer() {}
 
-    ConvLayer(int input_dim, int output_dim, int kernel_x_dim, int kernel_y_dim, int feature_x_dim, int feature_y_dim); 
+    ConvLayer(int input_dim, int output_dim, 
+		int kernel_x_dim, int kernel_y_dim, 
+		int feature_x_dim, int feature_y_dim); 
     
     void display();
-    
+
+	/*
+	* @brief set the connection map between the input feature map 
+	*		and the output feature of the convolutional layer
+	*
+	* @param conn_map
+	*
+	* @ret None
+	*/
     void _set_conn_map(const matrix_int& conn_map) {
         _conn_map = conn_map;
     }

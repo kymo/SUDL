@@ -18,6 +18,11 @@ public:
 	void _forward(Layer* pre_layer);
 	void _backward(Layer* nxt_layer);
 
+	void display() {
+		_data[0]._display("------------data---------");
+		_full_conn_weights._display("------------weights----------");
+		_full_conn_bias._display("-----------bias---------");
+	}
 };
 
 }

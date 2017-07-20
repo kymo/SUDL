@@ -23,9 +23,12 @@ PoolingLayer::PoolingLayer(int input_dim, int output_dim, int pooling_x_dim, int
 }
 
 void PoolingLayer::display() {
-    _pooling_weights._display("_pooling_weights");
+   	std::cout << "-------------pooling weight -----------" << std::endl;
+   	_pooling_weights._display("_pooling_weights");
+   	std::cout << "-------------pooling bias -----------" << std::endl;
     _pooling_bias._display("_pooling_bias");
-    for (int i = 0; i < _output_dim; i++) {
+    std::cout << "-----------data-----------" << std::endl;
+	for (int i = 0; i < _output_dim; i++) {
         _data[i]._display();
     }
 }
@@ -45,15 +48,12 @@ void PoolingLayer::_backward(Layer* nxt_layer) {
     _nxt_layer = nxt_layer;
 	std::vector<matrix_double>().swap(_errors);
     const ConvLayer* conv_layer = (ConvLayer*)(nxt_layer);
+	std::cout << "pooling backward" << std::endl;
     for (int i = 0; i < _output_dim; i++) {
         matrix_double error(_feature_x_dim, _feature_y_dim);
         for (int j = 0; j < _input_dim; j++) {
             if (conv_layer->_conn_map[j][i]) {
-                conv_layer->_errors[i]._display("conv_layer->_errors[i]");
-                conv_layer->_conv_kernels[i][j]._display("conv_layer->_conv_kernels[i][j]");
                 matrix_double conv2d_vec = conv_layer->_errors[i].conv2d(conv_layer->_conv_kernels[i][j], FULL);
-                conv2d_vec._display("conv2d_vec");
-                sigmoid_m_diff(_data[i])._display("sigmoid_m_diff(_data[i])");
                 error = error + conv2d_vec.dot_mul(sigmoid_m_diff(_data[i]));
             }
         }

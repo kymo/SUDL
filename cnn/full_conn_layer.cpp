@@ -12,7 +12,6 @@ void FullConnLayer::_forward(Layer* _pre_layer) {
 	} else {
 		_pre_layer_data = _pre_layer->_data[0];
 	}
-	_pre_layer_data._display("_pre_layer_data");
 	_data.push_back(sigmoid_m(_pre_layer_data
 		* _full_conn_weights 
 		+ _full_conn_bias));
@@ -33,13 +32,13 @@ void FullConnLayer::_backward(Layer* nxt_layer) {
 		error = nxt_layer->_errors[0].dot_mul(sigmoid_m_diff(_data[0]));
 	} else if (nxt_layer->_type == FULL_CONN) {
 		BaseFullConnLayer* full_conn_layer = (BaseFullConnLayer*) nxt_layer;
-		error = full_conn_layer->_errors[0] 
-			* full_conn_layer->_full_conn_weights
+		error = (full_conn_layer->_errors[0]
+			* full_conn_layer->_full_conn_weights._T())
 			.dot_mul(sigmoid_m_diff(_data[0]));
 	}
 
-	_delta_full_conn_weights = _pre_layer_data._T() * nxt_layer->_errors[0];
-	_delta_full_conn_bias = nxt_layer->_errors[0];
+	_delta_full_conn_weights = _pre_layer_data._T() * error;
+	_delta_full_conn_bias = error;
 	_errors.push_back(error);	
 }
 }

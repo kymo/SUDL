@@ -13,13 +13,15 @@ using namespace std;
 class InputLayer: public Layer {
 
 public:
-	InputLayer(const std::vector<matrix_double>&datas) {
-		_data = datas;	
-	}
+    InputLayer(const std::vector<matrix_double>&datas) {
+        _data = datas;    
+    }
     void _forward(Layer* pre_layer) {}
     void _backward(Layer* nxt_laery) {}
-	void _update_gradient(int opt_type, double learning_rate) {}
-	void display() {}
+    void _update_gradient(int opt_type, double learning_rate) {}
+    void display() {
+
+    }
 };
 
 void test_conv_layer() {
@@ -35,11 +37,11 @@ void test_conv_layer() {
     for (int i = 0; i < 2; i++) {
         conn_map[0][i] = 1;
     }
-	std::vector<matrix_double> datas;
-	datas.push_back(data);
+    std::vector<matrix_double> datas;
+    datas.push_back(data);
     Layer* layer = new InputLayer(datas);
     
-	ConvLayer* conv_layer = new ConvLayer(1, 2, 2, 2, 2, 2);
+    ConvLayer* conv_layer = new ConvLayer(1, 2, 2, 2, 2, 2);
     conv_layer->_set_conn_map(conn_map);
     conv_layer->_forward(layer);
     conv_layer->display();
@@ -55,10 +57,10 @@ void test_conv_layer() {
     pooling_layer->_errors.push_back(error);
     // test backward of conv layer
     conv_layer->_backward(pooling_layer);
-	// test backward of conv layer
-	for (int i = 0; i < 2; i++) {
-		conv_layer->_errors[i]._display("error");
-	}
+    // test backward of conv layer
+    for (int i = 0; i < 2; i++) {
+        conv_layer->_errors[i]._display("error");
+    }
 }
 
 void test_conv_full_layer() {    
@@ -73,37 +75,42 @@ void test_conv_full_layer() {
     for (int i = 0; i < 2; i++) {
         conn_map[0][i] = 1;
     }
-	std::vector<matrix_double> datas;
-	datas.push_back(data);
+    std::vector<matrix_double> datas;
+    datas.push_back(data);
     Layer* layer = new InputLayer(datas);
     
-	ConvLayer* conv_layer = new ConvLayer(1, 2, 2, 2, 2, 2);
+    ConvLayer* conv_layer = new ConvLayer(1, 2, 2, 2, 2, 2);
     conv_layer->_set_conn_map(conn_map);
     conv_layer->_forward(layer);
     conv_layer->display();
     
-	FullConnLayer* full_layer = new FullConnLayer(8, 4);
-	full_layer->_forward(conv_layer);
-	full_layer->display();
+    FullConnLayer* full_layer = new FullConnLayer(8, 4);
+    full_layer->_forward(conv_layer);
+    full_layer->display();
 
     matrix_double error(1, 4);
     error[0][0] = 0.32;
-	error[0][1] = 0.21;
-	error[0][2] = 0.1;
-	error[0][3] = 0.5;
+    error[0][1] = 0.21;
+    error[0][2] = 0.1;
+    error[0][3] = 0.5;
 
     full_layer->_errors.push_back(error);
     // test backward of conv layer
     conv_layer->_backward(full_layer);
-	
-	for (int i = 0; i < 2;i ++) {
-		conv_layer->_errors[i]._display("errors conv");
-	}
+    
+    for (int i = 0; i < 2;i ++) {
+        conv_layer->_errors[i]._display("errors conv");
+    }
+    for (int i = 0; i < 2;i ++) {
+        conv_layer->_delta_conv_kernels[0][i]._display("delta_weights");
+    }
+    full_layer->_full_conn_weights._display("_full_conn_weights");
+    full_layer->_errors[0]._display("error");
 }
 
 
 void test_pooling_layer() {
-	std::vector<matrix_double> datas;
+    std::vector<matrix_double> datas;
     for (int i = 0; i < 4; i ++) {
         matrix_double data(6, 6);
         for (int j = 0; j < 6; j++) {
@@ -113,9 +120,9 @@ void test_pooling_layer() {
         }
         //layer->_add_data(data);
         data._display("data");
-		datas.push_back(data);
+        datas.push_back(data);
     }
-	Layer* layer = new InputLayer(datas);
+    Layer* layer = new InputLayer(datas);
 
     PoolingLayer* pooling_layer = new PoolingLayer(4, 4, 2, 2, 3, 3);
     pooling_layer->_forward(layer);
@@ -153,73 +160,87 @@ void test_pooling_layer() {
 }
 
 void test_cnn(int argc, char*argv[]) {
-	if (argc < 2) {
-		std::cout << "[Usage] ./test_conv_layer train_data" << std::endl;
-		return ;
-	}
-	std::vector<Layer*> layers;
-	layers.push_back(new ConvLayer(1, 6, 5, 5, 24, 24));
-	layers.push_back(new PoolingLayer(6, 6, 2, 2, 12, 12));
-	layers.push_back(new ConvLayer(6, 8, 5, 5, 8, 8));
-	layers.push_back(new PoolingLayer(8, 8, 2, 2, 4, 4));
-	layers.push_back(new ConvLayer(8, 16, 3, 3, 2, 2));
-	layers.push_back(new FullConnLayer(64, 10));
-	//Layer* loss_layer = new MeanSquareLossLayer();
-	//layers.push_back(loss_layer);
-	CNN<MeanSquareLossLayer> *cnn = new CNN<MeanSquareLossLayer>();
-	cnn->build_cnn(layers);
-	cnn->load_data(argv[1]);
-	cnn->train();
+    if (argc < 2) {
+        std::cout << "[Usage] ./test_conv_layer train_data" << std::endl;
+        return ;
+    }
+    std::vector<Layer*> layers;
+    layers.push_back(new ConvLayer(1, 6, 5, 5, 24, 24));
+    layers.push_back(new PoolingLayer(6, 6, 2, 2, 12, 12));
+    layers.push_back(new ConvLayer(6, 16, 5, 5, 8, 8));
+    layers.push_back(new PoolingLayer(16, 16, 2, 2, 4, 4));
+    layers.push_back(new ConvLayer(16, 10, 2, 2, 3, 3));
+    layers.push_back(new FullConnLayer(90, 32));
+    layers.push_back(new FullConnLayer(32, 10));
+    //layers.push_back(new ConvLayer(1, 1, 1, 1, 2, 2));
+    //layers.push_back(new PoolingLayer(1, 1, 2, 2, 1, 1));
+    //layers.push_back(new ConvLayer(1, 2, 1, 1, 1, 1));
+    //layers.push_back(new FullConnLayer(2, 3));
+    
+    //layers.push_back(new PoolingLayer(1, 1, 4, 4, 7, 7));
+    //layers.push_back(new ConvLayer(1, 1, 2, 2, 6, 6));
+    //layers.push_back(new FullConnLayer(36, 10));
+    //Layer* loss_layer = new MeanSquareLossLayer();
+    //layers.push_back(loss_layer);
+    CNN<MeanSquareLossLayer> *cnn = new CNN<MeanSquareLossLayer>();
+    cnn->build_cnn(layers);
+     cnn->load_data(argv[1]);
+    //cnn->load_test_data(argv[1]);
+    //cnn->load_iris_data(argv[1]);
+    cnn->train();
 }
 
-void test_cnn_1() {
-	int label = 2;
-	matrix_double feature(7, 7);
-	for (int i = 0; i < 7; i++) {
-		for (int j = 0; j < 7; j++) {
-			feature[i][j] = rand() % 10 / 10.0;
-		}
-	}
-	std::vector<matrix_double> data;
-	matrix_double la(1, 4);
-	la[0][label] = 0;
-	CNN<MeanSquareLossLayer> *cnn = new CNN<MeanSquareLossLayer>();
 
-	data.push_back(feature);
-	std::vector<Layer*> layers;
-	layers.push_back(new ConvLayer(1, 2, 2, 2, 6, 6));
-	layers.push_back(new PoolingLayer(2, 2, 2, 2, 3, 3));
-	layers.push_back(new ConvLayer(2, 2, 2, 2, 2, 2));
-	layers.push_back(new FullConnLayer(8, 4));
-	cnn->build_cnn(layers);
-	cnn->train_x_feature.push_back(data);
-	cnn->train_y_label.push_back(la);
-	cnn->train();
+void test_cnn_1() {
+    int label = 2;
+    matrix_double feature(7, 7);
+    for (int i = 0; i < 7; i++) {
+        for (int j = 0; j < 7; j++) {
+            feature[i][j] = rand() % 10 / 10.0;
+        }
+    }
+    std::vector<matrix_double> data;
+    matrix_double la(1, 4);
+    la[0][label] = 0;
+    CNN<MeanSquareLossLayer> *cnn = new CNN<MeanSquareLossLayer>();
+    data.push_back(feature);
+    std::vector<Layer*> layers;
+    layers.push_back(new ConvLayer(1, 2, 2, 2, 6, 6));
+    //layers.push_back(new PoolingLayer(2, 2, 2, 2, 3, 3));
+    //layers.push_back(new ConvLayer(2, 2, 2, 2, 2, 2));
+    layers.push_back(new FullConnLayer(8, 4));
+    cnn->build_cnn(layers);
+    cnn->train_x_feature.push_back(data);
+    cnn->train_y_label.push_back(la);
+    cnn->train();
 
 }
 
 void test_ann(int argc, char* argv[]) {
-	if (argc < 2) {
-		std::cout << "[Usage] ./test_conv_layer train_data" << std::endl;
-		return ;
-	}
-	std::vector<Layer*> layers;
-	layers.push_back(new FullConnLayer(49, 64));
-	layers.push_back(new FullConnLayer(64, 10));
-	ANN<MeanSquareLossLayer> *ann = new ANN<MeanSquareLossLayer>();
-	ann->build_ann(layers);
-	//ann->load_data(argv[1]);
-	ann->load_mnist_data(argv[1]);
-	ann->train();
+    if (argc < 2) {
+        std::cout << "[Usage] ./test_conv_layer train_data" << std::endl;
+        return ;
+    }
+    std::vector<Layer*> layers;
+    //layers.push_back(new FullConnLayer(49, 64));
+    //layers.push_back(new FullConnLayer(64, 10));
+    layers.push_back(new FullConnLayer(4, 8));
+    layers.push_back(new FullConnLayer(8, 32));
+    layers.push_back(new FullConnLayer(32, 3));
+    ANN<MeanSquareLossLayer> *ann = new ANN<MeanSquareLossLayer>();
+    ann->build_ann(layers);
+    ann->load_data(argv[1]);
+    //ann->load_mnist_data(argv[1]);
+    ann->train();
 }
 
 int main(int argc, char*argv[]) {
     srand((unsigned)time(NULL));
     //test_conv_layer();   
-	// test_conv_full_layer();
+    // test_conv_full_layer();
     // test_pooling_layer();
-	// test_cnn(argc, argv);
-	// test_ann(argc, argv);
-   	test_cnn_1();
-   	return 0;
+    test_cnn(argc, argv);
+    // test_ann(argc, argv);
+    //test_cnn_1();
+    return 0;
 }

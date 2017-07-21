@@ -10,19 +10,14 @@ class FullConnLayer : public BaseFullConnLayer {
 
 public:
     
-	virtual ~FullConnLayer() {}
+    virtual ~FullConnLayer() {}
 
-	FullConnLayer(int input_dim, int output_dim) :
-		BaseFullConnLayer(input_dim, output_dim) {}
+    FullConnLayer(int input_dim, int output_dim) :
+        BaseFullConnLayer(input_dim, output_dim) {}
 
-	void _forward(Layer* pre_layer);
-	void _backward(Layer* nxt_layer);
+    void _forward(Layer* pre_layer);
+    void _backward(Layer* nxt_layer);
 
-	void display() {
-		_data[0]._display("------------data---------");
-		_full_conn_weights._display("------------weights----------");
-		_full_conn_bias._display("-----------bias---------");
-	}
 };
 
 }

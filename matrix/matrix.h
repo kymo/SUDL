@@ -107,7 +107,6 @@ public:
     }
     
     void _display(const std::string& tips) const {
-    //    return ;
         std::cout << tips << std::endl;
         _display();
     }
@@ -254,15 +253,15 @@ public:
         }
     }
 
-	Matrix<T> minus_by(T val) const {
+    Matrix<T> minus_by(T val) const {
         Matrix<T> t_matrix;
-		for (size_t i = 0; i < _x_dim; ++i) {
+        for (size_t i = 0; i < _x_dim; ++i) {
             for (size_t j = 0; j < _y_dim; ++j) {
                 t_matrix[i][j] = val - _val[i][j];
             }
         }
-		return t_matrix;
-	}
+        return t_matrix;
+    }
     
     T sum() const {
         T ret_val = 0.0;
@@ -413,9 +412,9 @@ public:
     }
 
     Matrix<T> rotate_180() const {
-		Matrix<T> t_matrix(_x_dim, _y_dim);
+        Matrix<T> t_matrix(_x_dim, _y_dim);
         for (int i = 0; i < _x_dim * _y_dim; i++) {
-			t_matrix[i / _y_dim][i % _y_dim] = 
+            t_matrix[i / _y_dim][i % _y_dim] = 
                 _val[_x_dim - 1 - i / _y_dim][_y_dim - 1 - i % _y_dim];
         }
         return t_matrix;
@@ -433,9 +432,7 @@ public:
                     _val[i][j];
             }
         }
-        full_mat._display("full_mat");
-        kernel.rotate_180()._display("kernel.rotate_180()");
-        dst_mat = full_mat.conv(kernel.rotate_180());
+        dst_mat = full_mat.conv(kernel);
         return dst_mat;
     }
 

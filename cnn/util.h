@@ -69,6 +69,11 @@ T sigmoid(T x) {
 }
 
 template <typename T>
+T sigmoid_diff(T x) {
+    return x * (1 - x);
+}
+
+template <typename T>
 Matrix<T> tanh_m(const Matrix<T>& matrix) {
     Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
     for (size_t i = 0; i < matrix._x_dim; i++) {

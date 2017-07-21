@@ -29,9 +29,11 @@ public:
     }
 
 	void display() {
-		std::cout << "Layer " << _type << std::endl;
+		std::cout << "--------------full conn layer-----------" << std::endl;
 		_data[0]._display("data");
-		std::cout << "Layer " << _type << std::endl;
+		if (_errors.size() > 0) 
+		_errors[0]._display("error");
+		std::cout << "--------------full conn layer end-----------" << std::endl;
 	}
 
 	matrix_double _flatten(const std::vector<matrix_double>& data) {

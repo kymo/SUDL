@@ -52,6 +52,7 @@ GRU::GRU(int feature_dim, int hidden_dim, int output_dim) :
 
 void GRU::_forward(const matrix_double& feature) {
     int seq_len = feature._x_dim;
+
     matrix_double pre_hidden_vals(1, _hidden_dim);
     _ug_values.resize(seq_len, _hidden_dim);
     _rg_values.resize(seq_len, _hidden_dim);
@@ -77,12 +78,42 @@ void GRU::_forward(const matrix_double& feature) {
             + _output_bias);
 
         pre_hidden_vals = hidden_value;
+
         _output_values.set_row(t, output_value);
         _hidden_values.set_row(t, hidden_value);
         _ug_values.set_row(t, ug_value);
         _rg_values.set_row(t, rg_value);
         _newh_values.set_row(t, newh_value);
+    
     }
+
+}
+    
+void GRU::gradient_check(matrix_double& weights,
+    const matrix_double& delta_weights,
+    const matrix_double& feature,
+    const matrix_double& label,
+    const std::string& name) {
+    
+    std::cout << "------------Gradient Check for [" << name << "]" << std::endl;
+    for (int i = 0; i <  weights._x_dim; i++) {
+        for (int j = 0; j < weights._y_dim; j++) {
+            double v = weights[i][j];
+            weights[i][j] = v + 1.0e-4;
+            _forward(feature);
+            matrix_double diff_val = _output_values - label;
+            double f1 = (diff_val.dot_mul(diff_val)).sum() * 0.5;
+            
+            weights[i][j] = v - 1.0e-4;
+            _forward(feature);
+            diff_val = _output_values - label;
+            double f2 = (diff_val.dot_mul(diff_val).sum()) * 0.5;
+            std::cout << "[ " << delta_weights[i][j] << ", " << (f1 - f2) / (2.0e-4) << " ]";
+            weights[i][j] = v;
+        }
+        std::cout << std::endl;
+    }
+    
 
 }
 
@@ -119,9 +150,10 @@ void GRU::_backward(const matrix_double& feature,
         matrix_double mid_hidden_error = output_error * _hidden_output_weights._T() 
             + nxt_ug_error * _ug_hidden_weights._T() 
             + nxt_rg_error * _rg_hidden_weights._T();
-        if (t != seq_len - 1) {
+
+        if (t + 1 < seq_len) {
             mid_hidden_error = mid_hidden_error 
-                + nxt_newh_error.dot_mul(_rg_values._R(t + 1)) * _newh_hidden_weights._T()
+                + (nxt_newh_error * _newh_hidden_weights._T()).dot_mul(_rg_values._R(t + 1))
                 - nxt_hidden_error.dot_mul(_ug_values._R(t + 1) - 1);
         }
         matrix_double newh_error = mid_hidden_error
@@ -137,9 +169,14 @@ void GRU::_backward(const matrix_double& feature,
 
         matrix_double rg_error(1, _hidden_dim);
         if (t > 0) {
-            rg_error = newh_error.dot_mul(_ug_values._R(t))
+            
+            matrix_double rg_error1 = newh_error.dot_mul(_ug_values._R(t))
                 .dot_mul(tanh_m_diff(_newh_values._R(t)))
                 .dot_mul(_hidden_values._R(t - 1) * _newh_hidden_weights)
+                .dot_mul(sigmoid_m_diff(_rg_values._R(t)));
+            rg_error1._display("1");
+            rg_error = _hidden_values._R(t - 1)
+                .dot_mul(newh_error * _newh_hidden_weights._T())
                 .dot_mul(sigmoid_m_diff(_rg_values._R(t)));
         }
         rg_error._display("rg_error");
@@ -151,18 +188,28 @@ void GRU::_backward(const matrix_double& feature,
         _delta_newh_bias.add(newh_error);
         if (t > 0) {
             _delta_ug_hidden_weights.add(_hidden_values._R(t - 1)._T() * ug_error);
-            _delta_rg_hidden_weights.add(_hidden_values._R(t - 1)._T() * ug_error);
-            _delta_newh_hidden_weights.add((_hidden_values._R(t - 1).dot_mul(_rg_values._R(t)))._T() * ug_error);
+            _delta_rg_hidden_weights.add(_hidden_values._R(t - 1)._T() * rg_error);
+            _delta_newh_hidden_weights.add((_hidden_values._R(t - 1).dot_mul(_rg_values._R(t)))._T() * newh_error);
         }
         _delta_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error);
         _delta_output_bias.add(output_error);
+        
         nxt_hidden_error = mid_hidden_error;
         nxt_ug_error = ug_error;
         nxt_rg_error = rg_error;
         nxt_newh_error = newh_error;
     }
-    
-    // weight update
+
+    // gradient check
+#ifdef GRADIENT_CHECK
+    gradient_check(_ug_input_weights, _delta_ug_input_weights, feature, label, "ug_input_weights");
+    gradient_check(_rg_input_weights, _delta_rg_input_weights, feature, label, "rg_input_weights");
+    gradient_check(_newh_input_weights, _delta_newh_input_weights, feature, label, "_newh_input_weights");
+    gradient_check(_ug_hidden_weights, _delta_ug_hidden_weights, feature, label, "ug_hidden_weights");
+    gradient_check(_rg_hidden_weights, _delta_rg_hidden_weights, feature, label, "rg_hidden_weights");
+    gradient_check(_newh_hidden_weights, _delta_newh_hidden_weights, feature, label, "_newh_hidden_weights");
+#endif
+    // weight clip
     gradient_clip(_delta_ug_input_weights, _clip_gra);
     gradient_clip(_delta_ug_hidden_weights, _clip_gra);
     gradient_clip(_delta_ug_bias, _clip_gra);
@@ -175,6 +222,7 @@ void GRU::_backward(const matrix_double& feature,
     gradient_clip(_delta_hidden_output_weights, _clip_gra);
     gradient_clip(_delta_output_bias, _clip_gra);
     
+    // weight update
     _ug_input_weights.add(_delta_ug_input_weights * _eta);
     _ug_hidden_weights.add(_delta_ug_hidden_weights * _eta);
     _ug_bias.add(_delta_ug_bias * _eta);
@@ -202,8 +250,8 @@ double GRU::_epoch(const std::vector<int>& sample_indexes, int epoch) {
         val1 = merge(label, 1);
         val2 = merge(_output_values, 1);
         // calc error
-        // val1 = merge(label);
-        // val2 = merge(_output_values);
+        //val1 = merge(label);
+        //val2 = merge(_output_values);
         matrix_double diff_val = label - _output_values;
         cost += diff_val.dot_mul(diff_val).sum() * 0.5 / feature._x_dim;
         _backward(feature, label);
@@ -266,9 +314,10 @@ void GRU::_train() {
     // load x
     // _load_feature_data();
     _max_epoch_cnt = 100;
-    int batch_size = 1;
+    int batch_size = 10;
+    int tot = 100000;
     for (size_t epoch = 0; epoch < _max_epoch_cnt; epoch++) {
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < tot/batch_size; i++) {
             std::vector<int> sample_indexes;
             for (int j = i * batch_size; j < (i + 1) * batch_size; j++) {
                 sample_indexes.push_back(j);

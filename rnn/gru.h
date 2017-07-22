@@ -11,6 +11,8 @@
 
 namespace sub_dl {
 
+//#define GRADIENT_CHECK
+
 class GRU {
 
 private:
@@ -94,6 +96,13 @@ public:
         _train_x_features.push_back(feature);
         _train_y_labels.push_back(label);
     }
+
+	void gradient_check(matrix_double& weights,
+		const matrix_double& delta_weight,
+		const matrix_double& feature,
+		const matrix_double& label,
+		const std::string& name);
+
 
     void _load_feature_data();
     void _train();

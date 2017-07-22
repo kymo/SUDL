@@ -85,9 +85,6 @@ private:
     matrix_double _delta_hidden_output_weights;
     matrix_double _delta_output_bias;
 
-    // output of each layer
-    LSTM_OUT lstm_layer_values;
-
     std::vector<matrix_double> _x_features;
     std::vector<matrix_double> _y_labels;
 
@@ -125,7 +122,13 @@ public:
     void _set_use_peelhole(bool use_peelhole) {
         _use_peelhole = use_peelhole;
     }
-    
+
+    void gradient_check(matrix_double& weights, 
+        matrix_double& delta_weights,
+        const std::string& weights_name,
+        const matrix_double& feature,
+        const matrix_double& label);
+
     void _push_feature(const matrix_double& feature,
         const matrix_double& label) {
         _train_x_features.push_back(feature);
@@ -146,6 +149,7 @@ public:
     void _predict();
     void _save_model(const std::string& file_name);
     void _load_model(const std::string& file_name);
+    
 };
 
 }

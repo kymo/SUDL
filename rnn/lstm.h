@@ -11,6 +11,8 @@
 
 namespace sub_dl {
 
+#define GRADIENT_CHECK
+
 class LSTM_OUT {
 
 public:

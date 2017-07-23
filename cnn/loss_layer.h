@@ -37,7 +37,7 @@ public:
     void _forward(Layer* pre_layer) {
 		std::vector<matrix_double>().swap(_data);
 		_pre_layer = pre_layer;
-        if (pre_layer->_type != FULL_CONN) {
+        if (pre_layer->_type != ACT) {
             std::cerr << "Error pre layer for mean square loss layer" << std::endl;
             exit(1);
         }

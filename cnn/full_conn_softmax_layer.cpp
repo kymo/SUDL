@@ -8,7 +8,7 @@ void FullConnSoftmaxLayer::_forward(Layer* _pre_layer) {
 	std::vector<matrix_double>().swap(_data);
 	if (_pre_layer->_type == CONV ||
 		_pre_layer->_type == POOL) {
-		input_data = _flatten(_pre_layer->_data);
+		//input_data = _flatten(_pre_layer->_data);
 	} else {
 		input_data = _pre_layer->_data[0];
 	}

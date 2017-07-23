@@ -63,10 +63,6 @@ LSTM::LSTM(int feature_dim, int hidden_dim, int output_dim, bool use_peelhole) :
         _og_cell_weights.resize(hidden_dim, hidden_dim);
         _ig_cell_weights.resize(hidden_dim, hidden_dim);
     }
-    if (_use_peelhole) {
-        std::cout << "FUCK" << std::endl;
-    }
-
 }
 
 void LSTM::_forward(const matrix_double& feature,
@@ -171,14 +167,17 @@ void LSTM::_backward(const matrix_double& feature,
 
     _ig_delta_input_weights.resize(_feature_dim, _hidden_dim);
     _ig_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
+	_ig_delta_cell_weights.resize(_hidden_dim, _hidden_dim);
     _ig_delta_bias.resize(1, _hidden_dim);
     
     _fg_delta_input_weights.resize(_feature_dim, _hidden_dim);
     _fg_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
+	_fg_delta_cell_weights.resize(_hidden_dim, _hidden_dim);
     _fg_delta_bias.resize(1, _hidden_dim);
     
     _og_delta_input_weights.resize(_feature_dim, _hidden_dim);
     _og_delta_hidden_weights.resize(_hidden_dim, _hidden_dim);
+	_og_delta_cell_weights.resize(_hidden_dim, _hidden_dim);
     _og_delta_bias.resize(1, _hidden_dim);
     
     _cell_delta_input_weights.resize(_feature_dim, _hidden_dim);
@@ -261,8 +260,16 @@ void LSTM::_backward(const matrix_double& feature,
             _og_delta_hidden_weights.add(hidden_value_pre * og_error);
             _fg_delta_hidden_weights.add(hidden_value_pre * fg_error);
             _cell_delta_hidden_weights.add(hidden_value_pre * new_cell_error);
-        }
-        _delta_output_bias.add(output_error);
+        	
+			if (_use_peelhole) {
+				const matrix_double& cell_value_pre = lstm_layer_values._cell_values._R(t - 1)._T();
+				_ig_delta_cell_weights.add(cell_value_pre * ig_error);
+				_og_delta_cell_weights.add(cell_value_pre * og_error);
+				_fg_delta_cell_weights.add(cell_value_pre * fg_error);
+			}
+		}
+        
+		_delta_output_bias.add(output_error);
         _ig_delta_bias.add(ig_error);
         _og_delta_bias.add(og_error);
         _fg_delta_bias.add(fg_error);
@@ -274,12 +281,20 @@ void LSTM::_backward(const matrix_double& feature,
         nxt_cell_mid_error = cell_mid_error;
     }
 
-    // std::cout << "--------------------Gradient Check ---------------" << std::endl;
-    // gradient_check(_hidden_output_weights, 
-    //    _delta_hidden_output_weights, 
-    //    "_hidden_output_weights", 
-    //    feature, label);
+#ifdef GRADIENT_CHECK
+    std::cout << "--------------------Gradient Check ---------------" << std::endl;
+    gradient_check(_hidden_output_weights, 
+        _delta_hidden_output_weights, 
+        "_hidden_output_weights", 
+        feature, label);
     
+	gradient_check(_ig_cell_weights, 
+        _ig_delta_cell_weights, 
+        "_ig_delta_cell_weights", 
+        feature, label);
+    
+
+#endif
     // weight update
     gradient_clip(_ig_delta_input_weights, _clip_gra);
     gradient_clip(_ig_delta_hidden_weights, _clip_gra);
@@ -319,6 +334,11 @@ void LSTM::_backward(const matrix_double& feature,
     _hidden_output_weights.add(_delta_hidden_output_weights * _eta);
     _output_bias.add(_delta_output_bias * _eta);
 
+	if (_use_peelhole) {
+		_ig_cell_weights.add(_ig_delta_cell_weights * _eta);
+		_fg_cell_weights.add(_fg_delta_cell_weights * _eta);
+		_og_cell_weights.add(_og_delta_cell_weights * _eta);
+	}
 }
 
 double LSTM::_epoch(const std::vector<int>& sample_indexes, int epoch) {

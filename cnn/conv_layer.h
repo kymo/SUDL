@@ -8,9 +8,6 @@ namespace sub_dl {
 class ConvLayer : public Layer {
 
 public:
-    int _input_dim;
-    int _output_dim;
-    
     int _kernel_x_dim;
     int _kernel_y_dim;
     

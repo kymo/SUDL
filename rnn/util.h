@@ -11,7 +11,7 @@ template <typename T>
 int merge(const Matrix<T>& output_val) {
     int val = 0;
     int d = 1;
-    for (int i = 8; i >= 1; i--) {
+    for (int i = output_val._x_dim; i >= 1; i--) {
         val += int(output_val[i - 1][0] + 0.5) * pow(2, i - 1);
     }
     return val;
@@ -83,7 +83,7 @@ Matrix<T> tanh_m_diff(const Matrix<T>& matrix) {
     Matrix<T> ret_val(matrix._x_dim, matrix._y_dim);
     for (size_t i = 0; i < matrix._x_dim; i++) {
         for (size_t j = 0; j < matrix._y_dim; j++) {
-            ret_val[i][j] = 1 - tanh(matrix[i][j]) * tanh(matrix[i][j]);
+            ret_val[i][j] = 1 - matrix[i][j] * matrix[i][j]; //  tanh(matrix[i][j]) * tanh(matrix[i][j]);
         }
     }
     return ret_val;

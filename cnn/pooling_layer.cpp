@@ -41,36 +41,41 @@ void PoolingLayer::_forward(Layer* pre_layer) {
         matrix_double up_feature = pre_layer->_data[i]
             .down_sample(_pooling_x_dim, _pooling_y_dim, AVG_POOLING) * _pooling_weights[0][i] 
             + _pooling_bias[0][i];
-        _data.push_back(sigmoid_m(up_feature));
+        // _data.push_back(sigmoid_m(up_feature));
+        _data.push_back(up_feature);
     }
 }
 
 void PoolingLayer::_backward(Layer* nxt_layer) {
-    _nxt_layer = nxt_layer;
-    std::vector<matrix_double>().swap(_errors);
-    const ConvLayer* conv_layer = (ConvLayer*)(nxt_layer);
-
-    std::cout << "pooooooooooooooooooooooooooooooooooooooooooo" << std::endl;
-    for (int i = 0; i < _output_dim; i++) {
-        matrix_double error(_feature_x_dim, _feature_y_dim);
-        for (int j = 0; j < conv_layer->_output_dim; j++) {
-            if (conv_layer->_conn_map[i][j]) {
-                matrix_double conv2d_vec = conv_layer->_errors[j]
-                    .conv2d(conv_layer->_conv_kernels[i][j].rotate_180(), FULL);
-                error = error + conv2d_vec;
-            }
-        }
-        error = error.dot_mul(sigmoid_m_diff(_data[i]));
-        _errors.push_back(error);
-        _delta_pooling_weights[0][i] = (error
-            .dot_mul(_pre_layer->_data[i].down_sample(_pooling_x_dim, _pooling_y_dim, AVG_POOLING)))
-            .sum();
-        _delta_pooling_bias[0][i] = error.sum();
-        error._display("error");
+    if (nxt_layer->_type != ACT && nxt_layer->_type != CONV) {
+        std::cerr << "Error layer type error before pooling!" << std::endl;
+        exit(1);
     }
 
-    _delta_pooling_weights._display("_delta_pooling_weights");
-    _delta_pooling_bias._display("_delta_pooling_bias");
+    std::vector<matrix_double>().swap(_errors);
+    if (nxt_layer->_type == CONV) { 
+        const ConvLayer* conv_layer = (ConvLayer*)(nxt_layer);
+        for (int i = 0; i < _output_dim; i++) {
+            matrix_double error(_feature_x_dim, _feature_y_dim);
+            for (int j = 0; j < conv_layer->_output_dim; j++) {
+                if (conv_layer->_conn_map[i][j]) {
+                    matrix_double conv2d_vec = conv_layer->_errors[j]
+                        .conv2d(conv_layer->_conv_kernels[i][j].rotate_180(), FULL);
+                    error = error + conv2d_vec;
+                }
+            }
+            // error = error.dot_mul(sigmoid_m_diff(_data[i]));
+            _errors.push_back(error);
+        }
+    } else {
+        _errors  = nxt_layer->_errors;
+    }
+    for (int i = 0; i < _output_dim; i++) {
+        _delta_pooling_weights[0][i] = (_errors[i]
+            .dot_mul(_pre_layer->_data[i].down_sample(_pooling_x_dim, _pooling_y_dim, AVG_POOLING)))
+            .sum();
+        _delta_pooling_bias[0][i] = _errors[i].sum();
+    }
 }
 
 void PoolingLayer::_update_gradient(int opt_type, double learning_rate) {

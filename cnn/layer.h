@@ -6,7 +6,7 @@
 #include <vector>
 #include "matrix.h"
 #include "util.h"
-
+#include "active_func.h"
 namespace sub_dl {
 
 enum {
@@ -15,6 +15,8 @@ enum {
     FULL_CONN,
 	INPUT,
 	LOSS,
+	ACT,
+	FLAT
 } layer_type;
 
 enum {
@@ -32,9 +34,13 @@ public:
     
     int _feature_x_dim;
     int _feature_y_dim;
+    
+	int _input_dim;
+    int _output_dim;
 
 	Layer* _pre_layer;
 	Layer* _nxt_layer;
+	ActiveFunc<double>* _active_func;
 
     virtual void _forward(Layer* pre_layer) = 0;
     virtual void _backward(Layer* nxt_layer) = 0;
@@ -43,7 +49,6 @@ public:
 };
 
 class DataFeedLayer: public Layer {
-
 public:
     DataFeedLayer(const std::vector<matrix_double>& data) {
         _data = data;

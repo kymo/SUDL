@@ -153,6 +153,7 @@ public:
                         nxt_layer->_backward(NULL);
                         double f2 = nxt_layer->_data[0].sum();    
                         std::cout << "[ " << layer->_delta_full_conn_weights[i][j] << " " << (f1 - f2) / (2.0e-4) << "], ";
+						layer->_full_conn_weights[i][j] = v ;
                     }
                     std::cout << std::endl;
                 }
@@ -176,13 +177,13 @@ public:
                 double tot = 0;
                 int v1, v2;
                 for (int i = 0; i < batch_x_feature.size(); i++) {
-                    _forward(batch_x_feature[i]);                
+                    _forward(batch_x_feature[i]);               
+
                     double cost = _backward(batch_y_label[i]);
                     tot += cost;
                     v1 = merge(batch_y_label[i]);
                     v2 = merge(_layers.back()->_data[0]);
-                    _layers.back()->_data[0]._display("result");
-                    gradient_check(batch_x_feature[i], batch_y_label[i]);
+                    // gradient_check(batch_x_feature[i], batch_y_label[i]);
                     _update_gradient();
                 }
                 std::cout << "Cost " << tot << " " << v1 << "-" << v2 << std::endl;

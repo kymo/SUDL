@@ -6,8 +6,9 @@
 
 namespace sub_dl {
 
-
-ConvLayer::ConvLayer(int input_dim, int output_dim, int kernel_x_dim, int kernel_y_dim, int feature_x_dim, int feature_y_dim) {
+ConvLayer::ConvLayer(int input_dim, int output_dim, 
+    int kernel_x_dim, int kernel_y_dim, 
+    int feature_x_dim, int feature_y_dim) {
 
     _input_dim = input_dim;
     _output_dim = output_dim;
@@ -78,11 +79,15 @@ void ConvLayer::_forward(Layer* pre_layer) {
                 feature_map = feature_map + pre_layer->_data[j].conv(_conv_kernels[j][i]);
             }
         }
-        _data.push_back(sigmoid_m(feature_map + _conv_bias[0][i]));
+        _data.push_back(feature_map + _conv_bias[0][i]);
     }
 }
 
 void ConvLayer::_backward(Layer* nxt_layer) {
+    if (nxt_layer->_type != ACT) {
+        std::cerr << "Wrong layer type after conv layer!" << std::endl;
+        exit(1);
+    }
     std::vector<matrix_double>().swap(_errors);
     if (nxt_layer->_type == POOL) {
         const PoolingLayer* pooling_layer = (PoolingLayer*)(nxt_layer);
@@ -95,34 +100,8 @@ void ConvLayer::_backward(Layer* nxt_layer) {
                 * (pooling_layer->_pooling_weights[0][i] / delta_size);
             _errors.push_back(error);
         }
-    } else if (nxt_layer->_type == FULL_CONN) {
-        const FullConnLayer* full_conn_layer = (FullConnLayer*)(nxt_layer);
-
-        full_conn_layer->_errors[0]._display("full error");
-        full_conn_layer->_full_conn_weights._display("full weights");
-        for (int i = 0; i < _output_dim; i++) {
-            _data[i]._display("data");
-        }
-        for (int i = 0; i < _input_dim; i++) {
-            _pre_layer->_data[i]._display("input");
-        }
-
-        for (int i = 0; i < _output_dim; i++) {
-            matrix_double error(_feature_x_dim, _feature_y_dim);
-            for (int u = 0; u < error._x_dim; u++) {
-                for (int v = 0; v < error._y_dim; v++) {
-                    for (int t = 0; t < full_conn_layer->_output_dim; t++) {
-                        error[u][v] += full_conn_layer->_errors[0][0][t] * 
-                            full_conn_layer->_full_conn_weights[i * (error._x_dim * error._y_dim) 
-                                + error._y_dim * u + v][t];
-                    }
-                    error[u][v] *= sigmoid_diff(_data[i][u][v]);
-                }
-            }
-            error._display("error");
-            _errors.push_back(error);
-        }
-
+    } else if (nxt_layer->_type == ACT) {
+        _errors = nxt_layer->_errors;    
     }
     for (int i = 0; i < _output_dim; i++) {
         // update kernel weights

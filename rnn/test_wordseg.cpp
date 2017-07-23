@@ -5,8 +5,8 @@
 #include "rnn.h"
 #include "lstm.h"
 #include "gru.h"
-#define EMBEDDING_DIM 14
-#define LABEL_DIM 4
+#define EMBEDDING_DIM 2
+#define LABEL_DIM 1
 #define SAMPLE_SEP ";"
 #define FEATURE_SEP " "
 #define LABEL_SEP " "
@@ -98,30 +98,35 @@ void load_data(T* rnn, const char*file_name) {
 }
 
 void test_rnn() {
-	RNN* rnn = new RNN(EMBEDDING_DIM, 128, LABEL_DIM);
+	RNN* rnn = new RNN(EMBEDDING_DIM, 16, LABEL_DIM);
 	rnn->_set_epoch_cnt(100);
-	rnn->_set_eta(-0.005);
-	rnn->_set_clip_gra(0.1);
-	load_data(rnn, "train_text.seg.50w");
+	rnn->_set_eta(-0.01);
+	rnn->_set_clip_gra(10);
+	//load_data(rnn, "train_text.seg.50w");
+	load_data(rnn, "train_text.1");
+	//rnn->_load_feature_data();
 	rnn->_train();
 
 }
 
 void test_lstm() {
-	LSTM* rnn = new LSTM(EMBEDDING_DIM, 128, LABEL_DIM, true);
+	LSTM* rnn = new LSTM(EMBEDDING_DIM, 16, LABEL_DIM, true);
 	rnn->_set_epoch_cnt(100);
 	rnn->_set_eta(-0.02);
 	rnn->_set_clip_gra(0.2);
-	load_data(rnn, "train_text.1");
+	//load_data(rnn, "train_text.1");
+	rnn->_load_feature_data();
 	rnn->_train();
 }
 
 void test_gru() {
-	GRU* rnn = new GRU(EMBEDDING_DIM, 128, LABEL_DIM);
+	GRU* rnn = new GRU(EMBEDDING_DIM, 8, LABEL_DIM);
 	rnn->_set_epoch_cnt(100);
 	rnn->_set_eta(-0.02);
 	rnn->_set_clip_gra(0.2);
-	load_data(rnn, "train_text.1");
+	//load_data(rnn, "train_text.1");
+	load_data(rnn, "train_text.seg.50w");
+	//rnn->_load_feature_data();
 	rnn->_train();
 }
 
@@ -130,13 +135,16 @@ void test_gru_add() {
     gru->_set_epoch_cnt(100);
     gru->_set_eta(-0.05);
 	gru->_set_clip_gra(5);
-    gru->_load_feature_data();
+    //load_data(rnn, "train_text.1");
+	gru->_load_feature_data();
     gru->_train();
 }
 
 int main () {
-	//test_lstm();
-	test_rnn();
+    srand((unsigned)time(NULL));
+	test_lstm();
+	//test_rnn();
 	//test_gru();
+
 	return 0;
 }

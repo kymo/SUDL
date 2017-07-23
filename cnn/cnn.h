@@ -26,23 +26,19 @@ public:
         for (auto layer : _layers) {
             layer->_forward(pre_layer);
             pre_layer = layer;
-            // data = layer->_forward(data);
         }
     }
 
     double _backward(const matrix_double& label) {
-        // MeanSquareLossLayer* nxt_layer = new MeanSquareLossLayer(label);
         Layer* nxt_layer = new T(label);
         nxt_layer->_forward(_layers.back());
         nxt_layer->_backward(NULL);
         double cost = 0.0;
         cost += nxt_layer->_data[0].sum();
         for (int j = _layers.size() - 1; j >= 0; j--) {
-            nxt_layer->display();
             _layers[j]->_backward(nxt_layer);
             nxt_layer = _layers[j];
         }
-           nxt_layer->display();
         return cost;
 
     }
@@ -62,11 +58,9 @@ public:
         for (int i = 0; i < 36; i++) {
             value[i / 6][i % 6] = rand() % 4;
         }
-        value._display("input data:");
         x_feature.push_back(value);
         train_x_feature.push_back(x_feature);
         train_y_label.push_back(label_data);
-        std::cout << "Load Data " << train_x_feature.size() << std::endl;
     }
     
     void load_iris_data(const char*file_name) {
@@ -83,7 +77,7 @@ public:
                 double v;
                 fis >> comma;
                 fis >> v;
-                value[i / 2][i % 2] = v;
+                value[i / 2][i % 2] = v * 1.0;
             }
             x_feature.push_back(value);
             train_x_feature.push_back(x_feature);
@@ -114,8 +108,7 @@ public:
                     int v;
                     fis >> comma;
                     fis >> v;
-               //     std::cout << v << " ";
-                    value[i][j] = v / 255.0;
+                    value[i][j] = v / 256.0;
                 }
                 //std::cout << std::endl;
             }
@@ -141,7 +134,7 @@ public:
     }
 
     void gradient_check(std::vector<matrix_double> batch_x_feature,
-        matrix_double label) {    
+        matrix_double label) {   
         for (int l = 0; l < _layers.size(); l++) {
             if (_layers[l]->_type == FULL_CONN) {
                 BaseFullConnLayer* layer = (BaseFullConnLayer*)_layers[l];
@@ -163,6 +156,7 @@ public:
                         nxt_layer->_backward(NULL);
                         double f2 = nxt_layer->_data[0].sum();    
                         std::cout << "[ " << layer->_delta_full_conn_weights[i][j] << " " << (f1 - f2) / (2.0e-4) << "], ";
+                        layer->_full_conn_weights[i][j] = v;
                     }
                     std::cout << std::endl;
                 }
@@ -183,6 +177,7 @@ public:
                     nxt_layer->_backward(NULL);
                     double f2 = nxt_layer->_data[0].sum();    
                     std::cout << "[ " << layer->_delta_full_conn_bias[0][j] << " " << (f1 - f2) / (2.0e-4) << "], ";
+                    layer->_full_conn_bias[0][j] = v;
                 }
                 std::cout << std::endl;
             } else if (_layers[l]->_type == CONV) {
@@ -198,7 +193,7 @@ public:
                                 Layer* nxt_layer = new T(label);
                                 nxt_layer->_forward(_layers.back());
                                 nxt_layer->_backward(NULL);
-                                double f1 = nxt_layer->_data[0].sum();    
+                                double f1 = nxt_layer->_data[0].sum();
                                 layer->_conv_kernels[i][j][u][v] = val - 1.0e-4;
                                 _forward(batch_x_feature);
                                 
@@ -207,7 +202,8 @@ public:
                                 nxt_layer->_backward(NULL);
                                 double f2 = nxt_layer->_data[0].sum();
 
-                                std::cout << "[ " << layer->_delta_conv_kernels[i][j][u][v] << " " << (f1 - f2) / (2.0e-4) << "], ";
+                                std::cout << "[ " << layer->_delta_conv_kernels[i][j][u][v] << " " << (f1 - f2) / (2.0e-4) << "], " << f1 << " " << f2 << " ";
+                                layer->_conv_kernels[i][j][u][v] = val;
                             }
                             std::cout << std::endl;
                         }
@@ -234,6 +230,7 @@ public:
                     double f2 = nxt_layer->_data[0].sum();
                     std::cout << f1 - f2 << std::endl;
                     std::cout << "[ " << layer->_delta_conv_bias[i][j] << " " << (f1 - f2) / (2.0e-4) << "], ";
+                    layer->_conv_bias[i][j] = val;
                 }
                 std::cout << std::endl;
             } else if (_layers[l]->_type == POOL) {
@@ -256,6 +253,7 @@ public:
                     double f2 = nxt_layer->_data[0].sum();
 
                     std::cout << "[ " << layer->_delta_pooling_weights[0][j] << " " << (f1 - f2) / (2.0e-4) << "], ";
+                    layer->_pooling_weights[0][j] = v;
                 }
                 std::cout << std::endl;
                 std::cout << "bias" << std::endl;
@@ -276,6 +274,7 @@ public:
                     double f2 = nxt_layer->_data[0].sum();
 
                     std::cout << "[ " << layer->_delta_pooling_bias[0][j] << " " << (f1 - f2) / (2.0e-4) << "], ";
+                    layer->_pooling_bias[0][j] = v;
                 }
                 std::cout << std::endl;
             }
@@ -283,8 +282,8 @@ public:
     }
 
     void train() {
-        int epoch_cnt = 1;
-        int batch_size = 5;
+        int epoch_cnt = 100;
+        int batch_size = 10;
         int tot = 10000;
         for (int epoch = 0; epoch < epoch_cnt; epoch++) {
             for (int batch = 0; batch < tot / batch_size; batch++) {
@@ -298,15 +297,14 @@ public:
                 double tot = 0.0;
                 int v1, v2;
                 for (int i = 0; i < batch_x_feature.size(); i++) {
-                    _forward(batch_x_feature[i]);                
+                    _forward(batch_x_feature[i]);               
+                    std::cout << "he" << std::endl;
                     double cost = _backward(batch_y_label[i]);
                     v1 = merge(batch_y_label[i]);
                     v2 = merge(_layers.back()->_data[0]);
                     tot += cost;
                     // gradient check
-                    std::cout << "----------------" << std::endl;
                     // gradient_check( batch_x_feature[i], batch_y_label[i]);
-                    std::cout << "----------------" << std::endl;
                     _update_gradient();
                 }
                 std::cout << "Cost " << tot << " " << v1 << " - " << v2 << std::endl;

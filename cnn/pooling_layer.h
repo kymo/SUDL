@@ -8,9 +8,6 @@ namespace sub_dl {
 class PoolingLayer : public Layer {
 
 public:
-    int _input_dim;
-    int _output_dim;
-
     int _pooling_x_dim;
     int _pooling_y_dim;
     int _pooling_type; // 0 max_pooling 1 avg_pooling

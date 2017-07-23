@@ -72,7 +72,7 @@ public:
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
                 _val[i][j] = ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) ;
-            //    uniform_plus_minus_one;
+				//    uniform_plus_minus_one;
             }
         }
     }
@@ -107,7 +107,7 @@ public:
     }
     
     void _display(const std::string& tips) const {
-        std::cout << tips << std::endl;
+		std::cout << tips << std::endl;
         _display();
     }
 

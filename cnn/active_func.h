@@ -94,5 +94,4 @@ template <typename T>
 ActiveFuncFactory<T>* ActiveFuncFactory<T>::_instance = NULL;
 
 }
-
 #endif

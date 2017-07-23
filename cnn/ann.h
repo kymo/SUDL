@@ -42,6 +42,7 @@ public:
         for (int j = _layers.size() - 1; j >= 0; j--) {
             _layers[j]->_backward(nxt_layer);
             nxt_layer = _layers[j];
+			std::cout << nxt_layer->_type << std::endl;
         }
         return cost;
 
@@ -183,7 +184,7 @@ public:
                     tot += cost;
                     v1 = merge(batch_y_label[i]);
                     v2 = merge(_layers.back()->_data[0]);
-                    // gradient_check(batch_x_feature[i], batch_y_label[i]);
+                    gradient_check(batch_x_feature[i], batch_y_label[i]);
                     _update_gradient();
                 }
                 std::cout << "Cost " << tot << " " << v1 << "-" << v2 << std::endl;

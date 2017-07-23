@@ -297,8 +297,8 @@ public:
                 double tot = 0.0;
                 int v1, v2;
                 for (int i = 0; i < batch_x_feature.size(); i++) {
-                    _forward(batch_x_feature[i]);               
                     std::cout << "he" << std::endl;
+                    _forward(batch_x_feature[i]);               
                     double cost = _backward(batch_y_label[i]);
                     v1 = merge(batch_y_label[i]);
                     v2 = merge(_layers.back()->_data[0]);

@@ -33,6 +33,7 @@ public:
         _output_dim = pre_layer->_output_dim;
         _feature_x_dim = pre_layer->_feature_x_dim;
         _feature_y_dim = pre_layer->_feature_y_dim;
+        _pre_layer = pre_layer;
     }
 
     void _backward(Layer* nxt_layer) {
@@ -48,7 +49,6 @@ public:
                 * full_conn_layer->_full_conn_weights._T())
                 .dot_mul(_active_func->_diff(_pre_layer->_data[0]));
             _errors.push_back(error);
-
         } else if (nxt_layer->_type == FLAT) {
             FlatternLayer* flat_layer = (FlatternLayer*) nxt_layer;
             for (int i = 0; i < _output_dim; i++) {

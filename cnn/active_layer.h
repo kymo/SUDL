@@ -68,34 +68,38 @@ public:
                 matrix_double error(_feature_x_dim, _feature_y_dim);
                 for (int j = 0; j < conv_layer->_output_dim; j++) {
                     if (conv_layer->_conn_map[i][j]) {
-                        matrix_double conv2d_vec = conv_layer->_errors[j]
-                            .conv2d(conv_layer->_conv_kernels[i][j].rotate_180(), FULL);
+                        matrix_double conv2d_vec = (conv_layer->_errors[j]
+                            .conv2d(conv_layer->_conv_kernels[i][j].rotate_180(), FULL))
+							.dot_mul(_active_func->_diff(_pre_layer->_data[i]));
+							;
                         error = error + conv2d_vec;
                     }
                 }
-                error = error.dot_mul(_active_func->_diff(_pre_layer->_data[i]));
+                //error = error.dot_mul(_active_func->_diff(_pre_layer->_data[i]));
                 _errors.push_back(error);
             }
         } else if (nxt_layer->_type == POOL) {
             const PoolingLayer* pooling_layer = (PoolingLayer*)(nxt_layer);
-            int delta_size = (pooling_layer->_pooling_x_dim) * pooling_layer->_pooling_y_dim;
+            double delta_size = (pooling_layer->_pooling_x_dim) * pooling_layer->_pooling_y_dim;
             for (int i = 0; i < _output_dim; i++) {
                 matrix_double up_delta = pooling_layer->_errors[i]
                     .up_sample(pooling_layer->_pooling_x_dim, 
                     pooling_layer->_pooling_y_dim);
-                matrix_double error = up_delta
+				matrix_double error = up_delta
                     .dot_mul(_active_func->_diff(_pre_layer->_data[i]))
-                    * (pooling_layer->_pooling_weights[0][i] / delta_size);
+                    * (pooling_layer->_pooling_weights[0][i]) / delta_size;
                 _errors.push_back(error);
             }
         }
     }
 
     void _update_gradient(int opt_type, double learning_rate) {
-    }
+    
+	}
 
     void display() {
-    }    
+    
+	}    
 
 };
 

@@ -38,8 +38,9 @@ void PoolingLayer::_forward(Layer* pre_layer) {
     std::vector<matrix_double>().swap(_data);
     _pre_layer = pre_layer;
     for (int i = 0; i < _output_dim; i++) {
-        matrix_double up_feature = pre_layer->_data[i]
-            .down_sample(_pooling_x_dim, _pooling_y_dim, AVG_POOLING) * _pooling_weights[0][i] 
+        matrix_double up_feature = (pre_layer->_data[i]
+            .down_sample(_pooling_x_dim, _pooling_y_dim, AVG_POOLING)) 
+            * _pooling_weights[0][i] 
             + _pooling_bias[0][i];
         // _data.push_back(sigmoid_m(up_feature));
         _data.push_back(up_feature);
@@ -64,13 +65,15 @@ void PoolingLayer::_backward(Layer* nxt_layer) {
                     error = error + conv2d_vec;
                 }
             }
-            // error = error.dot_mul(sigmoid_m_diff(_data[i]));
+            error = error.dot_mul(sigmoid_m_diff(_data[i]));
             _errors.push_back(error);
         }
     } else {
-        _errors  = nxt_layer->_errors;
+        _errors = nxt_layer->_errors;
     }
+
     for (int i = 0; i < _output_dim; i++) {
+
         _delta_pooling_weights[0][i] = (_errors[i]
             .dot_mul(_pre_layer->_data[i].down_sample(_pooling_x_dim, _pooling_y_dim, AVG_POOLING)))
             .sum();

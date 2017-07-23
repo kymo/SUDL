@@ -74,7 +74,6 @@ void RNN::_backward(const matrix_double& feature,
         _hidden_weights._y_dim);
     matrix_double delta_hidden_bias(_hidden_bias._x_dim, _hidden_bias._y_dim);
     matrix_double delta_output_bias(_output_bias._x_dim, _output_bias._y_dim);
-    std::vector<matrix_double> list;
     for (int t = seq_len - 1; t >= 0; t--) {
         // output_error = (o_t - y_t) * f'(o_t)
         matrix_double output_error = (output_values._R(t) - label._R(t)) \
@@ -86,7 +85,6 @@ void RNN::_backward(const matrix_double& feature,
             .dot_mul(tanh_m_diff(hidden_values._R(t)));
         //_hidden_output_weights.add(_hidden_values._R(t)._T() * output_error * eta);
         // delta_V = delta_V + hidden_values[t-1]^T * output_error
-        list.push_back((hidden_values._R(t)._T() * output_error));
         delta_hidden_output_weights.add((hidden_values._R(t)._T() * 
             output_error));
         //_input_hidden_weights.add(feature._R(t)._T() * hidden_error * eta);

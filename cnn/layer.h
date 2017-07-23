@@ -28,6 +28,7 @@ class Layer {
 public:
 
 	std::vector<matrix_double> _data;
+	std::vector<matrix_double> _raw_data;
     std::vector<matrix_double> _errors;
     
 	int _type;

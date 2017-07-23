@@ -1,4 +1,4 @@
-MACRO=DEBUGALL
+MACRO=DEBUGALL 
 CFLAGS+=-w -g -std=c++11
 	SRCPATH=.
 	INCLUDEPATH=. ../matrix

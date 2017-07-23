@@ -172,17 +172,19 @@ void test_cnn(int argc, char*argv[]) {
     }
 	std::vector<Layer*> layers;
     layers.push_back(new ConvLayer(1, 6, 5, 5, 24, 24));
-	layers.push_back(new ReluLayer());
+	layers.push_back(new SigmoidLayer());
     layers.push_back(new PoolingLayer(6, 6, 2, 2, 12, 12));
 	layers.push_back(new SigmoidLayer());
     layers.push_back(new ConvLayer(6, 6, 5, 5, 8, 8));
-	layers.push_back(new ReluLayer());
-	layers.push_back(new FlatternLayer());
-    //layers.push_back(new PoolingLayer(16, 16, 2, 2, 4, 4));
-    //layers.push_back(new ConvLayer(16, 120, 4, 4, 1, 1));
-    layers.push_back(new FullConnLayer(384, 32));
 	layers.push_back(new SigmoidLayer());
-    layers.push_back(new FullConnLayer(32, 10));
+    layers.push_back(new PoolingLayer(6, 6, 2, 2, 4, 4));
+	layers.push_back(new SigmoidLayer());
+	layers.push_back(new ConvLayer(6, 10, 2, 2, 3, 3));
+	layers.push_back(new SigmoidLayer());
+	layers.push_back(new FlatternLayer());
+	layers.push_back(new FullConnLayer(90, 32));
+	layers.push_back(new SigmoidLayer());
+    layers.push_back(new FullConnLayer(32, 4));
 	layers.push_back(new SigmoidLayer());
     //layers.push_back(new ConvLayer(1, 1, 1, 1, 2, 2));
     //layers.push_back(new PoolingLayer(1, 1, 2, 2, 1, 1));
@@ -197,6 +199,7 @@ void test_cnn(int argc, char*argv[]) {
     CNN<MeanSquareLossLayer> *cnn = new CNN<MeanSquareLossLayer>();
     cnn->build_cnn(layers);
     cnn->load_data(argv[1]);
+
     //cnn->load_test_data(argv[1]);
     //cnn->load_iris_data(argv[1]);
     cnn->train();

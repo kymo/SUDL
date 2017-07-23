@@ -14,6 +14,7 @@ void FullConnLayer::_forward(Layer* _pre_layer) {
     _data.push_back(_pre_layer_data
         * _full_conn_weights
         + _full_conn_bias);
+	_raw_data.push_back(_data[0]);
 }
 
 void FullConnLayer::_backward(Layer* nxt_layer) {    

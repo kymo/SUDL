@@ -22,7 +22,7 @@ layers.push_back(new FullConnLayer(8, 32));  </br>
 layers.push_back(new SigmoidLayer());  </br>
 layers.push_back(new FullConnLayer(32, 3));   </br>
 layers.push_back(new SigmoidLayer());  </br>
-ANN<MeanSquareLossLayer> *ann = new ANN<MeanSquareLossLayer>();  </br>
+ANN\<MeanSquareLossLayer\> *ann = new ANN\<MeanSquareLossLayer\>();  </br>
 ann->build_ann(layers); </br>
 ann->load_data(argv[1]); </br>
 ann->train(); </br>
@@ -42,7 +42,7 @@ layers.push_back(new FullConnLayer(90, 32)); </br>
 layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new FullConnLayer(32, 4)); </br>
 layers.push_back(new SigmoidLayer()); </br>
-CNN<MeanSquareLossLayer> *cnn = new CNN<MeanSquareLossLayer>(); </br>
+CNN\<MeanSquareLossLayer\> *cnn = new CNN\<MeanSquareLossLayer\>(); </br>
 cnn->build_cnn(layers); </br>
 cnn->load_data(argv[1]); </br>
 cnn->train();

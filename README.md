@@ -32,11 +32,9 @@ ann->train(); </br>
 layers.push_back(new ConvLayer(1, 6, 5, 5, 24, 24)); </br>
 layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new PoolingLayer(6, 6, 2, 2, 12, 12)); </br>
-layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new ConvLayer(6, 6, 5, 5, 8, 8)); </br>
 layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new PoolingLayer(6, 6, 2, 2, 4, 4)); </br>
-layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new ConvLayer(6, 10, 2, 2, 3, 3)); </br>
 layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new FlatternLayer()); </br>

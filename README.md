@@ -28,7 +28,7 @@ ann->load_data(argv[1]); </br>
 ann->train(); </br>
 
 2. CNN
-std::vector<Layer*> layers; </br>
+> std::vector<Layer*> layers; </br>
 layers.push_back(new ConvLayer(1, 6, 5, 5, 24, 24)); </br>
 layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new PoolingLayer(6, 6, 2, 2, 12, 12)); </br>

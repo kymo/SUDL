@@ -16,4 +16,14 @@ A light deep learning tools box by c++
 
 **Usage**
 1. ANN
+> layers.push_back(new FullConnLayer(4, 8));
+layers.push_back(new ReluLayer());
+layers.push_back(new FullConnLayer(8, 32));
+layers.push_back(new SigmoidLayer());
+layers.push_back(new FullConnLayer(32, 3)); 
+layers.push_back(new SigmoidLayer());
+ANN<MeanSquareLossLayer> *ann = new ANN<MeanSquareLossLayer>();
+ann->build_ann(layers);
+ann->load_data(argv[1]);
+ann->train();
 

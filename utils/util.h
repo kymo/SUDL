@@ -139,6 +139,38 @@ Matrix<T> log_m(const Matrix<T>& matrix) {
     return ret_val;
 }
 
+void split(const std::string& str, 
+		const std::string& delim,
+		std::vector<std::string>& ret) {
+	if (str.size() <= 0 || delim.size() <= 0) {
+		ret.clear();
+		return;
+	}
+	ret.clear();
+	int last = 0;
+	int index = str.find_first_of(delim, last);
+	while (index != -1) {
+		ret.push_back(str.substr(last, index - last));
+		last = index + 1;
+		index = str.find_first_of(delim, last);
+	}
+	if (index == -1 && str[str.size() - 1] != '\t') {
+		ret.push_back(str.substr(last, str.size() - last));
+	}
+}
+
+void label_encode(const matrix_double& label_id_vec,
+		matrix_double& label, int label_dim) {
+	if (label_id_vec._x_dim == 0 || label_id_vec._y_dim == 0) {
+		std::cerr << "Error when label encode!" << std::endl;
+		exit(1);
+	}
+	label.resize(label_id_vec._y_dim, label_dim);
+	for (int i = 0; i < label_id_vec._y_dim; i++) {
+		label[i][int(label_id_vec[0][i])] = 1;
+	}
+}
+
 }
 
 #endif

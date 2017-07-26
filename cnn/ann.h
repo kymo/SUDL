@@ -22,8 +22,9 @@ public:
     }
 
     void _forward(std::vector<matrix_double> data) {
-        Layer* pre_layer = new DataFeedLayer(data);
-        for (auto layer : _layers) {
+        // Layer* pre_layer = new DataFeedLayer(data);
+        Layer* pre_layer;
+		for (auto layer : _layers) {
             layer->_forward(pre_layer);
             pre_layer = layer;
         }

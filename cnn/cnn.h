@@ -16,25 +16,22 @@ public:
     std::vector<matrix_double> train_y_label;
 
     std::vector<Layer*> _layers;
+	DataFeedLayer* data_layer;
 
-    void build_cnn(std::vector<Layer*> layers) {
+    void build_cnn(const std::vector<Layer*>& layers) {
         _layers = layers;
+		data_layer = new DataFeedLayer();
     }
 
-    void _forward(std::vector<matrix_double> data) {
-        Layer* data_layer = new DataFeedLayer(data);
+    void _forward(const std::vector<matrix_double>& data) {
+		data_layer->_set_data(data);
 		Layer* pre_layer = data_layer;
         for (auto layer : _layers) {
             layer->_forward(pre_layer);
             pre_layer = layer;
         }
-		/*
-		if (NULL != data_layer) {
-			delete data_layer;
-		}*/
+//		std::cout << data_layer._type << std::endl;
 	}
-
-
 
     double _backward(const matrix_double& label) {
         Layer* loss_layer = new T(label);
@@ -48,10 +45,11 @@ public:
             _layers[j]->_backward(nxt_layer);
             nxt_layer = _layers[j];
         }
-		/*
+		
 		if (NULL != loss_layer) {
-			delete loss_layer;
-		}*/
+			delete (T*)loss_layer;
+			loss_layer = NULL;
+		}
         return cost;
     }
 
@@ -110,16 +108,11 @@ public:
         int id, r, g, b, label;
         char comma;
         while (fis >> label) {
-            matrix_double label_data(1, 4);
+            matrix_double label_data(1, 10);
 			int i = 0;
-			while (label > 0) {
-				label_data[0][i ++] = label % 2;
-				label /= 2;
-			}
-            // label_data[0][label] = 1;
+            label_data[0][label] = 1;
             std::vector<matrix_double> x_feature;
             matrix_double value(28, 28);
-            // std::cout << label << std::endl;
             for (int i = 0; i < 28; i++) {
                 for (int j = 0; j < 28; j++) {
                     int v;
@@ -127,30 +120,22 @@ public:
                     fis >> v;
                     value[i][j] = v / 256.0;
                 }
-                //std::cout << std::endl;
             }
             x_feature.push_back(value);
             train_x_feature.push_back(x_feature);
             train_y_label.push_back(label_data);
         }
-        
-        // fis.close();
         std::cout << "Load Data" << std::endl;
     }
     
     int merge(const matrix_double& data) {
         double v = -100;
         int id = 0;
-        
 		for (int i = data._y_dim - 1; i >= 0; i--) {
-			if (data[0][i] > 0.5) {
-				id += 1 << (data._y_dim - 1 - i);
-			}
-			/*
             if (v < data[0][i]) {
                 v = data[0][i];
                 id = i;
-            }*/
+            }
         }
         return id;
     }
@@ -306,26 +291,20 @@ public:
     void train() {
         int epoch_cnt = 100;
         int batch_size = 10;
-        int tot = 150;
+        int tot = 10000;
         for (int epoch = 0; epoch < epoch_cnt; epoch++) {
             for (int batch = 0; batch < tot / batch_size; batch++) {
-                std::vector<std::vector<matrix_double> > batch_x_feature;
-                std::vector<matrix_double> batch_y_label;
-                for (int i = batch * batch_size; i < 
-                    batch * batch_size + batch_size; i++) {
-                    batch_x_feature.push_back(train_x_feature[i]);
-                    batch_y_label.push_back(train_y_label[i]);
-                }
                 double tot = 0.0;
                 int v1, v2;
-                for (int i = 0; i < batch_x_feature.size(); i++) {
-                    _forward(batch_x_feature[i]);               
-                    double cost = _backward(batch_y_label[i]);
-                    v1 = merge(batch_y_label[i]);
+                for (int i = batch * batch_size; i < 
+                    batch * batch_size + batch_size; i++) {
+                    _forward(train_x_feature[i]);               
+                    double cost = _backward(train_y_label[i]);
+                    v1 = merge(train_y_label[i]);
                     v2 = merge(_layers.back()->_data[0]);
                     tot += cost;
                     // gradient check
-                    // gradient_check( batch_x_feature[i], batch_y_label[i]);
+                    //gradient_check(train_x_feature[i], train_y_label[i]);
                     _update_gradient();
                 }
                 std::cout << "Cost " << tot << " " << v1 << " - " << v2 << std::endl;

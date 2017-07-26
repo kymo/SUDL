@@ -22,7 +22,8 @@ enum {
 	SEQ_SOFTMAX,
 	SEQ_ACT,
 	SEQ_LOSS,
-	RNN_CELL
+	RNN_CELL,
+	LSTM_CELL
 } layer_type;
 
 enum {

@@ -47,3 +47,43 @@ cnn->build_cnn(layers); </br>
 cnn->load_data(argv[1]); </br>
 cnn->train();
 
+3. RNN
+3.1 singel layer
+> std::vector<Layer*> layers; </br>
+layers.push_back(new WordEmbeddingLayer(14)); </br>
+layers.push_back(new RnnCell(8, 16)); </br>
+layers.push_back(new SeqFullConnLayer(16, 4)); </br>
+layers.push_back(new SeqActiveLayer()); </br>
+ReccurentNet *rnet = new ReccurentNet(4); </br>
+rnet->_build_rnn(layers);  </br>
+
+3.2 multi layers
+> std::vector<Layer*> layers; </br>
+layers.push_back(new WordEmbeddingLayer(14)); </br>
+layers.push_back(new RnnCell(8, 8)); </br>
+layers.push_back(new RnnCell(8, 16)); </br>
+layers.push_back(new SeqFullConnLayer(16, 4)); </br>
+layers.push_back(new SeqActiveLayer()); </br>
+ReccurentNet *rnet = new ReccurentNet(4); </br>
+rnet->_build_rnn(layers);  </br>
+
+> std::vector<Layer*> layers; </br>
+layers.push_back(new WordEmbeddingLayer(14)); </br>
+layers.push_back(new LstmCell(8, 8)); </br>
+layers.push_back(new LstmCell(8, 16)); </br>
+layers.push_back(new SeqFullConnLayer(16, 4)); </br>
+layers.push_back(new SeqActiveLayer()); </br>
+ReccurentNet *rnet = new ReccurentNet(4); </br>
+rnet->_build_rnn(layers);  </br>
+
+
+3.3 different layers
+> std::vector<Layer*> layers; </br>
+layers.push_back(new WordEmbeddingLayer(14)); </br>
+layers.push_back(new RnnCell(8, 8)); </br>
+layers.push_back(new LstmCell(8, 16)); </br>
+layers.push_back(new SeqFullConnLayer(16, 4)); </br>
+layers.push_back(new SeqActiveLayer()); </br>
+ReccurentNet *rnet = new ReccurentNet(4); </br>
+rnet->_build_rnn(layers);  </br>
+

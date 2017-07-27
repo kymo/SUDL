@@ -7,7 +7,8 @@ A light deep learning tools box by c++
 **Network Architecture**
 1. Convolutional Neural Network 
 2. Normal Neural Network
-3. Reccurent Neural Network with three mainstream varieties(LSTM, LSTM-peelhole, GRU)
+3. Reccurent Neural Network with three mainstream varieties(LSTM, LSTM-peelhole, GRU)(deep arcitecture supported)
+4. bi-directional LSTM & GRU & RNN(deep arcitecture supported)
 
 **Nonlinearities**
 1. ReLU
@@ -47,7 +48,8 @@ cnn->build_cnn(layers); </br>
 cnn->load_data(argv[1]); </br>
 cnn->train();
 
-3. RNN
+3. RNN 
+
 3.1 singel layer
 > std::vector<Layer*> layers; </br>
 layers.push_back(new WordEmbeddingLayer(14)); </br>

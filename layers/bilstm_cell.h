@@ -1,3 +1,14 @@
+// Copyright (c) 2017 kymowind@gmail.com. All Rights Reserve.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//    http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License. 
+
 #ifndef BI_LSTM_CELL_H
 #define BI_LSTM_CELL_H
 
@@ -59,7 +70,7 @@ public:
             _neg_seq_lstm_cell->_forward(pre_layer);
             // reverse back for backward
             std::reverse(pre_layer->_data.begin(), pre_layer->_data.end());
-            for (tnt t = 0; t < _seq_len; t++) {
+            for (int t = 0; t < _seq_len; t++) {
                 _data.push_back(_pos_seq_lstm_cell->_data[t] + 
                     _neg_seq_lstm_cell->_data[_seq_len - 1 - t]);
             }
@@ -70,13 +81,13 @@ public:
     void _backward(Layer* nxt_layer) {
         
         if (nxt_layer->_type == BI_LSTM_CELL) {
-            BiLstmCell* bi_lstm_cell = (BiLstmCell*) pre_layer;
+            BiLstmCell* bi_lstm_cell = (BiLstmCell*) nxt_layer;
             _pos_seq_lstm_cell->_backward(bi_lstm_cell->_pos_seq_lstm_cell);
             _neg_seq_lstm_cell->_backward(bi_lstm_cell->_neg_seq_lstm_cell);
         } else {
-            _pos_seq_lstm_cell._backward(nxt_layer);
+            _pos_seq_lstm_cell->_backward(nxt_layer);
             std::reverse(nxt_layer->_errors.begin(), nxt_layer->_errors.end());
-            _neg_seq_lstm_cell._backward(nxt_layer);
+            _neg_seq_lstm_cell->_backward(nxt_layer);
             std::reverse(nxt_layer->_errors.begin(), nxt_layer->_errors.end());
         }
     }

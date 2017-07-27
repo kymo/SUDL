@@ -1,3 +1,14 @@
+// Copyright (c) 2017 kymowind@gmail.com. All Rights Reserve.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//    http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License. 
+
 #ifndef LSTM_CELL_H
 #define LSTM_CELL_H
 
@@ -77,11 +88,11 @@ public:
 
     LSTM_OUT _lstm_layer_values; 
 
-    bool _use_peelhole;
+    bool _use_peephole;
     double _eta;
     double _clip_gra;
 
-    LstmCell(int input_dim, int output_dim, bool use_peelhole) {
+    LstmCell(int input_dim, int output_dim, bool use_peephole) {
         _input_dim = input_dim;
         _output_dim = output_dim;
 
@@ -119,9 +130,9 @@ public:
         _cell_hidden_weights.assign_val();
         _cell_bias.assign_val();
 
-        _use_peelhole = use_peelhole;
+        _use_peephole = use_peephole;
         
-        if (use_peelhole) {
+        if (use_peephole) {
             _fg_cell_weights.resize(_output_dim, _output_dim);
             _og_cell_weights.resize(_output_dim, _output_dim);
             _ig_cell_weights.resize(_output_dim, _output_dim);
@@ -151,7 +162,7 @@ public:
             const matrix_double& xt = pre_layer->_data[t];
             
             matrix_double f_output;
-            if (! _use_peelhole) {
+            if (! _use_peephole) {
                 f_output = sigmoid_m(xt * _fg_input_weights 
                     + pre_hidden_vals * _fg_hidden_weights + _fg_bias);
             } else {
@@ -161,7 +172,7 @@ public:
             }
         
             matrix_double i_output;
-            if (! _use_peelhole) {
+            if (! _use_peephole) {
                 i_output = sigmoid_m(xt * _ig_input_weights 
                     + pre_hidden_vals * _ig_hidden_weights + _ig_bias);
             } else {
@@ -172,7 +183,7 @@ public:
             }
         
             matrix_double o_output;
-            if (! _use_peelhole) {
+            if (! _use_peephole) {
                 o_output = sigmoid_m(xt * _og_input_weights 
                     + pre_hidden_vals * _og_hidden_weights + _og_bias);
             } else {
@@ -284,7 +295,7 @@ public:
                 cell_mid_error = cell_mid_error 
                     + nxt_cell_mid_error.dot_mul(_lstm_layer_values._fg_values._R(t + 1));
             }
-            if (_use_peelhole) {
+            if (_use_peephole) {
                 cell_mid_error = cell_mid_error + nxt_fg_error * _fg_cell_weights._T() 
                     + nxt_ig_error * _ig_cell_weights._T()
                     + nxt_og_error * _og_cell_weights._T();
@@ -330,7 +341,7 @@ public:
                 _fg_delta_hidden_weights.add(hidden_value_pre * fg_error);
                 _cell_delta_hidden_weights.add(hidden_value_pre * new_cell_error);
                 
-                if (_use_peelhole) {
+                if (_use_peephole) {
                     const matrix_double& cell_value_pre = _lstm_layer_values._cell_values._R(t - 1)._T();
                     _ig_delta_cell_weights.add(cell_value_pre * ig_error);
                     _og_delta_cell_weights.add(cell_value_pre * og_error);
@@ -376,7 +387,7 @@ public:
             _cell_hidden_weights.add(_cell_delta_hidden_weights * learning_rate);
             _cell_bias.add(_cell_delta_bias * learning_rate);
 
-            if (_use_peelhole) {
+            if (_use_peephole) {
                 _ig_cell_weights.add(_ig_delta_cell_weights * learning_rate);
                 _fg_cell_weights.add(_fg_delta_cell_weights * learning_rate);
                 _og_cell_weights.add(_og_delta_cell_weights * learning_rate);

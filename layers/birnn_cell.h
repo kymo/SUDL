@@ -18,6 +18,8 @@
 
 namespace sub_dl {
 
+// the T stands for the different type of rnn cells, T can be RnnCell 
+// LstmCell or GruCell if you want to build Bi-directional cell version
 template <typename T>
 class BiRnnCell : public Layer {
 
@@ -76,12 +78,12 @@ public:
     *     of current cell if also bi-directional cell, just link the input
     *    and output of each time.
     *
-	* @param
-	*	pre_layer: pre layer
-	*
-	* @return
-	*	void
-	*/
+    * @param
+    *    pre_layer: pre layer
+    *
+    * @return
+    *    void
+    */
     void _forward(Layer* pre_layer) {
         std::vector<matrix_double>().swap(_data);
         _seq_len = pre_layer->_seq_len;

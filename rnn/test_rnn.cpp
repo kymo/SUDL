@@ -4,6 +4,7 @@
 #include <fstream>
 #include "util.h"
 #include "reccurent_net.h"
+#include "birnn_cell.h"
 
 #define SAMPLE_SEP ";"
 #define FEATURE_SEP " "
@@ -94,9 +95,16 @@ void test_rnn() {
     layers.push_back(new WordEmbeddingLayer(14));
     //layers.push_back(new RnnCell(14, 8));
     //layers.push_back(new RnnCell(8, 16));
-	layers.push_back(new LstmCell(14, 8, true));
-	layers.push_back(new RnnCell(8, 16));
-    layers.push_back(new SeqFullConnLayer(16, 4));
+	
+	// layers.push_back(new LstmCell(14, 8, true));
+	// layers.push_back(new RnnCell(8, 16));
+    
+	// layers.push_back(new BiLstmCell(14, 16, false, true));	
+	// layers.push_back(new BiLstmCell(16, 16, false, true));	
+	//layers.push_back(new BiRnnCell<RnnCell>(14, 16, BI_RNN_CELL));
+	layers.push_back(new BiRnnCell<LstmCell>(14, 16, false, false, BI_LSTM_CELL));
+	layers.push_back(new BiRnnCell<RnnCell>(16, 16, BI_RNN_CELL));
+	layers.push_back(new SeqFullConnLayer(16, 4));
     layers.push_back(new SeqActiveLayer());
     ReccurentNet *rnet = new ReccurentNet(4);
     rnet->_build_rnn(layers);
@@ -107,7 +115,7 @@ void test_rnn() {
     // load_data("train_text.seg.10w", train_x_features, train_y_labels);
     // load_feature_data(train_x_features, train_y_labels);
     load_data("train_text.1", train_x_features, train_y_labels);
-    int _max_epoch_cnt = 100;
+    int _max_epoch_cnt = 1;
     int batch_size = 10;
     int tot = 10000;
     for (int epoch = 0; epoch < _max_epoch_cnt; epoch++) {

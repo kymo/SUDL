@@ -20,11 +20,10 @@ public:
 
     void build_cnn(const std::vector<Layer*>& layers) {
         _layers = layers;
-		data_layer = new DataFeedLayer();
     }
 
     void _forward(const std::vector<matrix_double>& data) {
-		data_layer->_set_data(data);
+		data_layer = new DataFeedLayer(data);
 		Layer* pre_layer = data_layer;
         for (auto layer : _layers) {
             layer->_forward(pre_layer);

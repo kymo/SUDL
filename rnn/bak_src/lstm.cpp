@@ -24,7 +24,7 @@ LSTM::LSTM(int feature_dim, int hidden_dim, int output_dim, bool use_peelhole) :
 
     _ig_input_weights.assign_val();
     _ig_hidden_weights.assign_val();
-    //_ig_bias.assign_val();
+    _ig_bias.assign_val();
 
     _fg_input_weights.resize(feature_dim, hidden_dim);
     _fg_hidden_weights.resize(hidden_dim, hidden_dim);
@@ -32,7 +32,7 @@ LSTM::LSTM(int feature_dim, int hidden_dim, int output_dim, bool use_peelhole) :
 
     _fg_input_weights.assign_val();
     _fg_hidden_weights.assign_val();
-    //_fg_bias.assign_val();
+    _fg_bias.assign_val();
     
     _og_input_weights.resize(feature_dim, hidden_dim);
     _og_hidden_weights.resize(hidden_dim, hidden_dim);
@@ -40,7 +40,7 @@ LSTM::LSTM(int feature_dim, int hidden_dim, int output_dim, bool use_peelhole) :
 
     _og_input_weights.assign_val();
     _og_hidden_weights.assign_val();
-    //_og_bias.assign_val();
+    _og_bias.assign_val();
 
     _cell_input_weights.resize(feature_dim, hidden_dim);
     _cell_hidden_weights.resize(hidden_dim, hidden_dim);
@@ -48,13 +48,13 @@ LSTM::LSTM(int feature_dim, int hidden_dim, int output_dim, bool use_peelhole) :
 
     _cell_input_weights.assign_val();
     _cell_hidden_weights.assign_val();
-    //_cell_bias.assign_val();
+    _cell_bias.assign_val();
 
     _hidden_output_weights.resize(hidden_dim, output_dim);
     _output_bias.resize(1, output_dim);
 
     _hidden_output_weights.assign_val();
-    //_output_bias.assign_val();
+    _output_bias.assign_val();
 
     _use_peelhole = use_peelhole;
 

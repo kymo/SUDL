@@ -3,26 +3,21 @@
 */
 
 #include <iostream>
-
-#include "matrix.h"
+//#include "matrix.h"
+#include "m.h"
 
 using namespace std;
 using namespace sub_dl;
 
 void test_basic_func() {	
-	int **v;
-	alloc_matrix<int>(v, 4, 4);
-	for (int i = 0; i < 4; i ++) {
-		for (int j = 0; j < 4; j ++) {
-			std::cout << v[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
-	int *s;
-	alloc_vector<int>(s, 4);
-	for (int i = 0; i < 4; i ++) {
-		std::cout << s[i] << " ";
-	}
+	//int *v;
+	//alloc_matrix<int>(v, 4, 4);
+	//for (int i = 0; i < 4; i ++) {
+	//	for (int j = 0; j < 4; j ++) {
+	//		std::cout << v[i*4+j] << " ";
+	//	}
+	//	std::cout << std::endl;
+	//}
 	std::cout << std::endl;
 }
 
@@ -37,6 +32,12 @@ void test_matrix() {
 		}
 		std::cout << std::endl;
 	}
+	Matrix<int> tt = t._R(2);
+	for (int i = 0; i < 4;i ++) {
+		std::cout << tt[0][i]<< " ";
+		std::cout << std::endl;
+	}
+
 	Matrix<int> s(4, 4);
 	std::cout << "Second Matrix" << std::endl;
 	for (int i = 0; i < 4; i++) {

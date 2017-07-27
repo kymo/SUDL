@@ -1,3 +1,4 @@
+/* test_rnn.cpp */
 
 #include <iostream>
 #include <fstream>
@@ -91,9 +92,11 @@ void test_rnn() {
     
     std::vector<Layer*> layers;
     layers.push_back(new WordEmbeddingLayer(14));
-    layers.push_back(new RnnCell(14, 8));
-    layers.push_back(new RnnCell(8, 16));
-    layers.push_back(new SeqFullConnLayep(16, 4));
+    //layers.push_back(new RnnCell(14, 8));
+    //layers.push_back(new RnnCell(8, 16));
+	layers.push_back(new LstmCell(14, 8, true));
+	layers.push_back(new RnnCell(8, 16));
+    layers.push_back(new SeqFullConnLayer(16, 4));
     layers.push_back(new SeqActiveLayer());
     ReccurentNet *rnet = new ReccurentNet(4);
     rnet->_build_rnn(layers);

@@ -5,6 +5,7 @@
 #include "seq_full_conn_layer.h"
 #include "seq_loss_layer.h"
 #include "rnn_cell.h"
+#include "lstm_cell.h"
 #include "matrix.h"
 #include "embedding_layer.h"
 #include "util.h"
@@ -42,8 +43,10 @@ public:
 
     void _forward(const matrix_double& feature) {
         std::vector<matrix_double> x;
-        for (int i = 0; i < feature._x_dim; i++) {            
-            x.push_back(feature._R(i));
+        for (int i = 0; i < feature._y_dim; i++) {           
+			matrix_double val(1, 1);
+			val[0][0] = feature[0][i];
+            x.push_back(val);
         }
         DataFeedLayer* data_layer = new DataFeedLayer(x);
         Layer* pre_layer = data_layer;
@@ -60,8 +63,7 @@ public:
     }
 
     void gradient_check(const matrix_double& feature,
-        const matrix_double& label
-        ) {
+        const matrix_double& label) {
         
         for (int l = 0; l < _layers.size(); l++) {
             if (_layers[l]->_type == SEQ_FULL) {
@@ -138,7 +140,6 @@ public:
                         for (int k = 0; k < nxt_layer->_seq_len; k++) {
                             f1 += nxt_layer->_data[k].sum();
                         }
-
                         rnn_cell->_input_hidden_weights[i][j] = v - 1.0e-4;
                         _forward(feature);
                         nxt_layer = new SeqLossLayer(label);
@@ -153,7 +154,37 @@ public:
                     }
                     std::cout << std::endl;
                 }
-            }
+            } else if (_layers[l]->_type == LSTM_CELL) {
+                std::cout << "------------Gradient Check for rnn cell layer -------------" << std::endl;
+             
+                LstmCell* lstm_cell = (LstmCell*) _layers[l];
+                for (int i = 0; i < lstm_cell->_input_dim; i++) {
+                    for (int j = 0; j < lstm_cell->_output_dim; j++) {
+                        double v = lstm_cell->_ig_input_weights[i][j];
+                        lstm_cell->_ig_input_weights[i][j] = v + 1.0e-4;
+                        _forward(feature);
+                        Layer* nxt_layer = new SeqLossLayer(label);
+                        nxt_layer->_forward(_layers.back());
+                        nxt_layer->_backward(NULL);
+                        double f1 = 0.0;
+                        for (int k = 0; k < nxt_layer->_seq_len; k++) {
+                            f1 += nxt_layer->_data[k].sum();
+                        }
+                        lstm_cell->_ig_input_weights[i][j] = v - 1.0e-4;
+                        _forward(feature);
+                        nxt_layer = new SeqLossLayer(label);
+                        nxt_layer->_forward(_layers.back());
+                        nxt_layer->_backward(NULL);
+                        double f2 = 0.0;
+                        for (int k = 0; k < nxt_layer->_seq_len; k++) {
+                            f2 += nxt_layer->_data[k].sum();
+                        }
+                        std::cout << "[ " << lstm_cell->_ig_delta_input_weights[i][j] << "," << (f1 - f2) / (2.0e-4) << "]";
+                        lstm_cell->_ig_input_weights[i][j] = v;
+                    }
+                    std::cout << std::endl;
+                }
+			}
         }
     }
     double _backward(const matrix_double& label) {
@@ -181,18 +212,11 @@ public:
             const matrix_double& feature = batch_x[i];
             const matrix_double& label_ids = batch_y[i];
             matrix_double label;
-            label_encode(label_ids, label, _output_dim);
+			label_encode(label_ids, label, _output_dim);
             // forward
             _forward(feature);
-            val1 = merge(label, 1);
-            matrix_double output_val(feature._x_dim,
-                label._y_dim);
-            for (int i = 0; i < _layers.back()->_data.size(); i++) {
-                output_val.set_row(i, _layers.back()->_data[i]);
-            }
-            val2 = merge(output_val, 1);
             cost += _backward(label);
-            // gradient_check(feature, label);
+            gradient_check(feature, label);
             _update_gradient();
         }
         return cost;
@@ -201,8 +225,6 @@ public:
 	void _predict(const matrix_double& feature, std::vector<int>& labels) {
 		_forward(feature);
 		const Layer* layer = _layers.back();
-		std::cout << layer->_data.size() << std::endl;
-		std::cout << layer->_type << std::endl;
 		for (int i = 0; i < layer->_data.size(); i++) {
 			int mx_id = 0;
 			float val = -100;

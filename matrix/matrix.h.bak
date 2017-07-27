@@ -16,46 +16,55 @@ namespace sub_dl {
 enum {
     AVG_POOLING = 0,
     MAX_POOLING
-};
+} pooling_type;
 
 enum {
     FULL = 0,
     SAME,
     VALID
-};
+} conv2_type;
 
 template <typename T>
-void alloc_matrix(T* &_val, int r, int c) {
-    _val = new T[r * c];
-    for (size_t i = 0; i < r * c; i ++) {
-        _val[i] = 0;
+void alloc_matrix(T** &_val, int r, int c) {
+    _val = new T*[r];
+    for (size_t i = 0; i < r; i ++) {
+        _val[i] = new T[c];
+        for (size_t j = 0; j < c; ++j) {
+            _val[i][j] = 0;
+        }
     }
 }
 
 template <typename T>
-void destroy_matrix(T* _val) {
-    delete[] _val;
-    _val = NULL;
+void destroy_matrix(T** _val, int r) {
+    for (int i = 0; i < r; i ++) {
+        if (NULL != _val[i]) {
+            delete[] _val[i];
+			_val[i] = NULL;
+        }
+    }
+	delete _val;
+	_val = NULL;
 }
 
 template <typename T>
 class Matrix {
 
+private:
+    T** _val;
+
 public:
-    T* _val;
-    
     int _x_dim;        // x dimention of matrix
     int _y_dim;        // y dimention of matrix
- 
+    
     Matrix() {
         _val = NULL;
         _x_dim = 0;
         _y_dim = 0;
-        
     }
 
     ~ Matrix() {
-        destroy_matrix<T>(_val);
+        destroy_matrix<T>(_val, _x_dim);
     }
 
     void destroy() {
@@ -63,8 +72,11 @@ public:
     }
 
     void assign_val() {
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) ;
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                _val[i][j] = ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) ;
+				//    uniform_plus_minus_one;
+            }
         }
     }
 
@@ -75,19 +87,20 @@ public:
     }
 
     void operator = (const Matrix<T>& m) {
-        if (_x_dim != 0 && _x_dim != m._x_dim) {
-            std::cerr << "Error whenn operator = !" << std::endl;
-            exit(1);
-        }
-        if (_x_dim == 0) {
-            _x_dim = m._x_dim;
-            _y_dim = m._y_dim;
-            alloc_matrix<T>(_val, m._x_dim, m._y_dim);
-        }
-
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = m._val[i];
-        }
+		if (_x_dim != 0 && _x_dim != m._x_dim) {
+			std::cerr << "Error whenn operator = !" << std::endl;
+			exit(1);
+		}
+		if (_x_dim == 0) {
+			_x_dim = m._x_dim;
+			_y_dim = m._y_dim;
+			alloc_matrix<T>(_val, m._x_dim, m._y_dim);
+		}
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                _val[i][j] = m[i][j];
+            }
+        }    
     }
 
     Matrix(const Matrix<T>& m) {
@@ -95,20 +108,22 @@ public:
         _x_dim = m._x_dim;
         _y_dim = m._y_dim;
         alloc_matrix<T>(_val, m._x_dim, m._y_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = m._val[i];
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                _val[i][j] = m[i][j];
+            }
         }
     }
     
     void _display(const std::string& tips) const {
-        std::cout << tips << std::endl;
+		std::cout << tips << std::endl;
         _display();
     }
 
     void _display() const {
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < _y_dim; j++) {
-                std::cout << _val[i * _y_dim + j] << " ";
+                std::cout << _val[i][j] << " ";
             }
             std::cout << std::endl;
         }
@@ -116,7 +131,7 @@ public:
 
     // operator inherit
     T* operator [] (int i) const {
-        return _val + i * _y_dim;
+        return _val[i];
     }
 
     // operator inherit
@@ -127,15 +142,19 @@ public:
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = m._val[i] + _val[i];
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                t_matrix[i][j] = m[i][j] + _val[i][j];
+            }
         }
         return t_matrix;
     }
 
     void operator = (int val) const {
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = val;
+        for (int i = 0; i < _x_dim; i++) {
+            for (int j = 0; j < _y_dim; j++) {
+                _val[i][j] = val;
+            }
         }
     }
     
@@ -146,32 +165,40 @@ public:
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (size_t i = 0; i < _x_dim * _y_dim; ++i) {
-            t_matrix._val[i] = _val[i] - m._val[i];
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                t_matrix[i][j] = _val[i][j] - m[i][j];
+            }
         }
         return t_matrix;
     }
 
     Matrix<T> operator * (float rate) const {
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (size_t i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = _val[i] * rate;
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                t_matrix[i][j] = _val[i][j] * rate;
+            }
         }
         return t_matrix;
     }
     
     Matrix<T> operator + (T val) const {
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (size_t i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = _val[i] + val;
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                t_matrix[i][j] = _val[i][j] + val;
+            }
         }
         return t_matrix;
     }
     
     Matrix<T> operator - (T val) const {
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (size_t i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = _val[i] - val;
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                t_matrix[i][j] = _val[i][j] - val;
+            }
         }
         return t_matrix;
     }
@@ -182,33 +209,22 @@ public:
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (size_t i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = _val[i] / val;
+        for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < _y_dim; j++) {
+                t_matrix[i][j] = _val[i][j] / val;
+            }
         }
         return t_matrix;
     }
     
-    Matrix<T> operator * (const Matrix<T>& m) const {
+	Matrix<T> operator * (const Matrix<T>& m) const {
         if (m._x_dim != _y_dim) {
             std::cerr << "Error when multiply two matrix[size not match!]" << _x_dim << " " << _y_dim << 
                 " vs " << m._x_dim << " " << m._y_dim << std::endl;
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim, m._y_dim);
-        //cblas_sgemm(Order, TransA, TransB, _x_dim, m._y_dim, _y_dim, 1, 
-        //    _val[0], _y_dim, m[0], m._y_dim, 0,  t_matrix[0], t_matrix._y_dim);
-        for (int i = 0; i < _x_dim * m._y_dim; i++) {
-            T tot_val = 0;
-            int ni = i / m._y_dim;
-            int nj = i % m._y_dim;
-            for (int k = 0; k < _y_dim; k++) {
-                tot_val += _val[ni * _y_dim + k] * m._val[k * m._y_dim + nj];
-            }
-            t_matrix._val[i] = tot_val;
-        }
-        /*
-
-        for (size_t i = 0; i < _x_dim; i++) {
+		for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < m._y_dim; j++) {
                 T tot_val = 0;
                 for (size_t k = 0; k < _y_dim; k++) {
@@ -217,12 +233,10 @@ public:
                 t_matrix[i][j] = tot_val;
             }
         }
-        */
-
         return t_matrix;
     }
 
-    /*
+	/*
 
     Matrix<T> operator * (const Matrix<T>& m) const {
         if (m._x_dim != _y_dim) {
@@ -242,7 +256,7 @@ public:
         }
         return t_matrix;
     }
-    */
+	*/
 
     Matrix<T> dot_mul(const Matrix<T>& m) const {
         if (m._x_dim != _x_dim || m._y_dim != _y_dim) {
@@ -250,8 +264,10 @@ public:
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = _val[i] * m._val[i];
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                t_matrix[i][j] = _val[i][j] * m[i][j];
+            }
         }
         return t_matrix;
     }
@@ -261,23 +277,29 @@ public:
             std::cerr << "Error when add other a matrix[size not match!]" << std::endl;
             exit(1);
         }
-        for (size_t i = 0; i < _x_dim * _y_dim; ++i) {
-            _val[i] = _val[i] + m._val[i];
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                _val[i][j] = _val[i][j] + m[i][j];
+            }
         }
     }
 
     Matrix<T> minus_by(T val) const {
         Matrix<T> t_matrix;
-        for (size_t i = 0; i < _x_dim * _y_dim; ++i) {
-            t_matrix._val[i] = val - _val[i];
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                t_matrix[i][j] = val - _val[i][j];
+            }
         }
         return t_matrix;
     }
     
     T sum() const {
         T ret_val = 0.0;
-        for (size_t i = 0; i < _x_dim * _y_dim; ++i) {
-            ret_val += _val[i];
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                ret_val += _val[i][j];
+            }
         }
         return ret_val;
     }
@@ -287,7 +309,13 @@ public:
             std::cerr << "Error when calculate avg of the matrix!" << std::endl;
             exit(1);
         }
-        return sum() / (_x_dim * _y_dim);
+        T ret_val = 0.0;
+        for (size_t i = 0; i < _x_dim; ++i) {
+            for (size_t j = 0; j < _y_dim; ++j) {
+                ret_val += _val[i][j];
+            }
+        }
+        return ret_val / (_x_dim * _y_dim);
     }
 
     Matrix<T> _R(int r) const {
@@ -297,7 +325,7 @@ public:
         }
         Matrix<T> ret_val(1, _y_dim);
         for (size_t i = 0; i < _y_dim; i++) {
-            ret_val._val[i] = _val[r * _y_dim + i];
+            ret_val[0][i] = _val[r][i];
         }
         return ret_val;
     }
@@ -309,9 +337,8 @@ public:
         }
         Matrix<T> ret_val(_x_dim, 1);
         for (size_t i = 0; i < _x_dim; i++) {
-            ret_val._val[i] = _val[i * _y_dim + c];
+            ret_val[i][0] = _val[i][c];
         }
-        return ret_val;
     }
     
     /*
@@ -324,48 +351,45 @@ public:
             std::cerr << "Error when set row in matrix" << std::endl;
             exit(0);
         }
-        for (int i = 0; i < _y_dim; i++) {
-            _val[r * _y_dim + i] = matrix._val[src_row * _y_dim + i];
+        for (size_t i = 0; i < _y_dim; i++) {
+            _val[r][i] = matrix[src_row][i];
         }
     }
 
     void resize(int x_dim, int y_dim) {
-        if (_x_dim != 0) {
-            destroy_matrix<T>(_val);
-        }
         _x_dim = x_dim;
         _y_dim = y_dim;
         alloc_matrix<T>(_val, _x_dim, _y_dim);
     }
 
     void resize(T val) {
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = val;
+        for (int i = 0; i < _x_dim; i++) {
+            for (int j = 0; j < _y_dim;j ++) {
+                _val[i][j] = val;
+            }
         }
     }
     
     Matrix<T> _T() const {
         Matrix<T> t_matrix(_y_dim, _x_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            int ni = i / _y_dim;
-            int nj = i % _y_dim;
-            t_matrix._val[nj * _x_dim + ni] = 
-                _val[i];
+        for (size_t i = 0; i != _y_dim; ++i) {
+            for (size_t j = 0; j != _x_dim; ++j) {
+                t_matrix[i][j] = _val[j][i];
+            }
         }
         return t_matrix;
     }
-    
+
     Matrix<T> local(int r, int c, int rlen, int clen) const {
         if (r + rlen > _x_dim || c + clen > _y_dim) {
             std::cerr << "Error when get local data [ size not match!]" << std::endl;
             exit(1);
         }
         Matrix<T> t_matrix(rlen, clen);
-        for (int i = 0; i < rlen * clen; i++) {
-            int ni = i / clen;
-            int nj = i % clen;
-            t_matrix._val[i] = 
-                _val[(ni + r) * _y_dim + nj + c];
+        for (int i = 0; i < rlen; i++) {
+            for (int j = 0; j < clen; j++) {
+                t_matrix[i][j] = _val[i + r][j + c];
+            }
         }
         return t_matrix;
     }
@@ -378,10 +402,9 @@ public:
         }
         Matrix<T> t_matrix(_x_dim - kernel._x_dim + 1,
             _y_dim - kernel._y_dim + 1);
-        Matrix<T> kernel_rotated = kernel.rotate_180();
         for (int i = 0; i < t_matrix._x_dim; i++) {
             for (int j = 0; j < t_matrix._y_dim; j++) {
-                t_matrix[i][j] = (kernel_rotated
+                t_matrix[i][j] = (kernel.rotate_180()
                     .dot_mul(local(i, j, kernel._x_dim, kernel._y_dim))).sum();
             }
         }
@@ -413,7 +436,7 @@ public:
         Matrix<T> t_matrix(_x_dim * up_x_dim, _y_dim * up_y_dim);
         for (int i = 0; i < t_matrix._x_dim; i++) {
             for (int j = 0; j < t_matrix._y_dim; j++) {
-                t_matrix[i][j] = _val[_y_dim * (i / up_x_dim) + j / up_y_dim];
+                t_matrix[i][j] = _val[i / up_x_dim][j / up_y_dim];
             }
         }
         return t_matrix;
@@ -422,8 +445,8 @@ public:
     Matrix<T> rotate_180() const {
         Matrix<T> t_matrix(_x_dim, _y_dim);
         for (int i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = 
-                _val[_y_dim * (_x_dim - 1 - i / _y_dim) + _y_dim - 1 - i % _y_dim];
+            t_matrix[i / _y_dim][i % _y_dim] = 
+                _val[_x_dim - 1 - i / _y_dim][_y_dim - 1 - i % _y_dim];
         }
         return t_matrix;
     }
@@ -437,12 +460,13 @@ public:
         for (int i = 0; i < _x_dim; i++) {
             for (int j = 0; j < _y_dim; j++) {
                 full_mat[i + kernel._x_dim - 1][j + kernel._y_dim - 1] = 
-                    _val[i * _y_dim + j];
+                    _val[i][j];
             }
         }
         dst_mat = full_mat.conv(kernel);
         return dst_mat;
     }
+
 };
 
 typedef Matrix<float> matrix_float;

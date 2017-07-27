@@ -28,14 +28,14 @@ template <typename T>
 void alloc_matrix(T* &_val, int r, int c) {
     _val = new T[r * c];
     for (size_t i = 0; i < r * c; i ++) {
-        _val[i] = 0;
+		_val[i] = 0;
     }
 }
 
 template <typename T>
 void destroy_matrix(T* _val) {
-    delete[] _val;
-    _val = NULL;
+	delete[] _val;
+	_val = NULL;
 }
 
 template <typename T>
@@ -44,14 +44,14 @@ class Matrix {
 public:
     T* _val;
     
-    int _x_dim;        // x dimention of matrix
+	int _x_dim;        // x dimention of matrix
     int _y_dim;        // y dimention of matrix
  
     Matrix() {
         _val = NULL;
         _x_dim = 0;
         _y_dim = 0;
-        
+		
     }
 
     ~ Matrix() {
@@ -64,8 +64,8 @@ public:
 
     void assign_val() {
         for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) ;
-        }
+			_val[i] = ( (double)( 2.0 * rand() ) / ((double)RAND_MAX + 1.0) - 1.0 ) ;
+		}
     }
 
     Matrix(int x_dim, int y_dim) {
@@ -75,19 +75,19 @@ public:
     }
 
     void operator = (const Matrix<T>& m) {
-        if (_x_dim != 0 && _x_dim != m._x_dim) {
-            std::cerr << "Error whenn operator = !" << std::endl;
-            exit(1);
-        }
-        if (_x_dim == 0) {
-            _x_dim = m._x_dim;
-            _y_dim = m._y_dim;
-            alloc_matrix<T>(_val, m._x_dim, m._y_dim);
-        }
+		if (_x_dim != 0 && _x_dim != m._x_dim) {
+			std::cerr << "Error whenn operator = !" << std::endl;
+			exit(1);
+		}
+		if (_x_dim == 0) {
+			_x_dim = m._x_dim;
+			_y_dim = m._y_dim;
+			alloc_matrix<T>(_val, m._x_dim, m._y_dim);
+		}
 
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = m._val[i];
-        }
+		for (int i = 0; i < _x_dim * _y_dim; i++) {
+			_val[i] = m._val[i];
+		}
     }
 
     Matrix(const Matrix<T>& m) {
@@ -95,13 +95,13 @@ public:
         _x_dim = m._x_dim;
         _y_dim = m._y_dim;
         alloc_matrix<T>(_val, m._x_dim, m._y_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = m._val[i];
-        }
+		for (int i = 0; i < _x_dim * _y_dim; i++) {
+			_val[i] = m._val[i];
+		}
     }
     
     void _display(const std::string& tips) const {
-        std::cout << tips << std::endl;
+		std::cout << tips << std::endl;
         _display();
     }
 
@@ -127,15 +127,15 @@ public:
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = m._val[i] + _val[i];
-        }
+		for (int i = 0; i < _x_dim * _y_dim; i++) {
+			t_matrix._val[i] = m._val[i] + _val[i];
+		}
         return t_matrix;
     }
 
     void operator = (int val) const {
         for (int i = 0; i < _x_dim * _y_dim; i++) {
-            _val[i] = val;
+			_val[i] = val;
         }
     }
     
@@ -147,8 +147,8 @@ public:
         }
         Matrix<T> t_matrix(_x_dim, _y_dim);
         for (size_t i = 0; i < _x_dim * _y_dim; ++i) {
-            t_matrix._val[i] = _val[i] - m._val[i];
-        }
+        	t_matrix._val[i] = _val[i] - m._val[i];
+		}
         return t_matrix;
     }
 
@@ -188,6 +188,42 @@ public:
         return t_matrix;
     }
     
+	Matrix<T> operator * (const Matrix<T>& m) const {
+        if (m._x_dim != _y_dim) {
+            std::cerr << "Error when multiply two matrix[size not match!]" << _x_dim << " " << _y_dim << 
+                " vs " << m._x_dim << " " << m._y_dim << std::endl;
+            exit(1);
+        }
+        Matrix<T> t_matrix(_x_dim, m._y_dim);
+		//cblas_sgemm(Order, TransA, TransB, _x_dim, m._y_dim, _y_dim, 1, 
+		//	_val[0], _y_dim, m[0], m._y_dim, 0,  t_matrix[0], t_matrix._y_dim);
+		for (int i = 0; i < _x_dim * m._y_dim; i++) {
+			T tot_val = 0;
+			int ni = i / m._y_dim;
+			int nj = i % m._y_dim;
+			for (int k = 0; k < _y_dim; k++) {
+				tot_val += _val[ni * _y_dim + k] * m._val[k * m._y_dim + nj];
+			}
+			t_matrix._val[i] = tot_val;
+		}
+		/*
+
+		for (size_t i = 0; i < _x_dim; i++) {
+            for (size_t j = 0; j < m._y_dim; j++) {
+                T tot_val = 0;
+                for (size_t k = 0; k < _y_dim; k++) {
+                    tot_val += _val[i][k] * m[k][j];
+                }
+                t_matrix[i][j] = tot_val;
+            }
+        }
+		*/
+
+        return t_matrix;
+    }
+
+	/*
+
     Matrix<T> operator * (const Matrix<T>& m) const {
         if (m._x_dim != _y_dim) {
             std::cerr << "Error when multiply two matrix[size not match!]" << _x_dim << " " << _y_dim << 
@@ -195,19 +231,6 @@ public:
             exit(1);
         }
         Matrix<T> t_matrix(_x_dim, m._y_dim);
-        //cblas_sgemm(Order, TransA, TransB, _x_dim, m._y_dim, _y_dim, 1, 
-        //    _val[0], _y_dim, m[0], m._y_dim, 0,  t_matrix[0], t_matrix._y_dim);
-        for (int i = 0; i < _x_dim * m._y_dim; i++) {
-            T tot_val = 0;
-            int ni = i / m._y_dim;
-            int nj = i % m._y_dim;
-            for (int k = 0; k < _y_dim; k++) {
-                tot_val += _val[ni * _y_dim + k] * m._val[k * m._y_dim + nj];
-            }
-            t_matrix._val[i] = tot_val;
-        }
-        /*
-
         for (size_t i = 0; i < _x_dim; i++) {
             for (size_t j = 0; j < m._y_dim; j++) {
                 T tot_val = 0;
@@ -217,42 +240,19 @@ public:
                 t_matrix[i][j] = tot_val;
             }
         }
-        */
-
         return t_matrix;
     }
-
-    /*
-
-    Matrix<T> operator * (const Matrix<T>& m) const {
-        if (m._x_dim != _y_dim) {
-            std::cerr << "Error when multiply two matrix[size not match!]" << _x_dim << " " << _y_dim << 
-                " vs " << m._x_dim << " " << m._y_dim << std::endl;
-            exit(1);
-        }
-        Matrix<T> t_matrix(_x_dim, m._y_dim);
-        for (size_t i = 0; i < _x_dim; i++) {
-            for (size_t j = 0; j < m._y_dim; j++) {
-                T tot_val = 0;
-                for (size_t k = 0; k < _y_dim; k++) {
-                    tot_val += _val[i][k] * m[k][j];
-                }
-                t_matrix[i][j] = tot_val;
-            }
-        }
-        return t_matrix;
-    }
-    */
+	*/
 
     Matrix<T> dot_mul(const Matrix<T>& m) const {
         if (m._x_dim != _x_dim || m._y_dim != _y_dim) {
             std::cerr << "Error when dot multiply two matrix[size not match!]" << std::endl;
             exit(1);
         }
-        Matrix<T> t_matrix(_x_dim, _y_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = _val[i] * m._val[i];
-        }
+		Matrix<T> t_matrix(_x_dim, _y_dim);
+		for (int i = 0; i < _x_dim * _y_dim; i++) {
+			t_matrix._val[i] = _val[i] * m._val[i];
+		}
         return t_matrix;
     }
 
@@ -311,7 +311,7 @@ public:
         for (size_t i = 0; i < _x_dim; i++) {
             ret_val._val[i] = _val[i * _y_dim + c];
         }
-        return ret_val;
+		return ret_val;
     }
     
     /*
@@ -324,16 +324,16 @@ public:
             std::cerr << "Error when set row in matrix" << std::endl;
             exit(0);
         }
-        for (int i = 0; i < _y_dim; i++) {
-            _val[r * _y_dim + i] = matrix._val[src_row * _y_dim + i];
-        }
+		for (int i = 0; i < _y_dim; i++) {
+			_val[r * _y_dim + i] = matrix._val[src_row * _y_dim + i];
+		}
     }
 
     void resize(int x_dim, int y_dim) {
         if (_x_dim != 0) {
-            destroy_matrix<T>(_val);
-        }
-        _x_dim = x_dim;
+			destroy_matrix<T>(_val);
+		}
+		_x_dim = x_dim;
         _y_dim = y_dim;
         alloc_matrix<T>(_val, _x_dim, _y_dim);
     }
@@ -346,26 +346,26 @@ public:
     
     Matrix<T> _T() const {
         Matrix<T> t_matrix(_y_dim, _x_dim);
-        for (int i = 0; i < _x_dim * _y_dim; i++) {
-            int ni = i / _y_dim;
-            int nj = i % _y_dim;
-            t_matrix._val[nj * _x_dim + ni] = 
-                _val[i];
-        }
+		for (int i = 0; i < _x_dim * _y_dim; i++) {
+        	int ni = i / _y_dim;
+			int nj = i % _y_dim;
+			t_matrix._val[nj * _x_dim + ni] = 
+				_val[i];
+		}
         return t_matrix;
     }
-    
+    /*
     Matrix<T> local(int r, int c, int rlen, int clen) const {
         if (r + rlen > _x_dim || c + clen > _y_dim) {
             std::cerr << "Error when get local data [ size not match!]" << std::endl;
             exit(1);
         }
         Matrix<T> t_matrix(rlen, clen);
-        for (int i = 0; i < rlen * clen; i++) {
-            int ni = i / clen;
-            int nj = i % clen;
-            t_matrix._val[i] = 
-                _val[(ni + r) * _y_dim + nj + c];
+		for (int i = 0; i < rlen * clen; i++) {
+			int ni = i / clen;
+			int nj = i % clen;
+			t_matrix._val[i] = 
+				_val[(ni + r) * _y_dim + nj + c];
         }
         return t_matrix;
     }
@@ -378,10 +378,96 @@ public:
         }
         Matrix<T> t_matrix(_x_dim - kernel._x_dim + 1,
             _y_dim - kernel._y_dim + 1);
-        Matrix<T> kernel_rotated = kernel.rotate_180();
+		Matrix<T> kernel_rotated = kernel.rotate_180();
+		for (int i = 0; i < t_matrix._x_dim * t_matrix._y_dim; i++) {
+        	t_matrix._val[i] = (kernel_rotated
+				.dot_mul(local(i / t_matrix._y_dim, i % t_matrix._y_dim, kernel._x_dim, kernel._y_dim))).sum();
+		}
+        return t_matrix;
+    }
+    // for pooling
+    Matrix<T> down_sample(int pooling_x_dim, int pooling_y_dim, int sample_type) {
+        if (_x_dim % pooling_x_dim != 0 || _y_dim % pooling_y_dim != 0) {
+            std::cerr << "Error when down_sample [size not match!]" << std::endl;
+            exit(1);
+        }
+        Matrix<T> t_matrix(_x_dim / pooling_x_dim, 
+            _y_dim / pooling_y_dim);
+		for (int i = 0; i < t_matrix._x_dim * t_matrix._y_dim; i++) {
+			if (sample_type == AVG_POOLING) {
+				int ni = i / t_matrix._y_dim;
+				int nj = i % t_matrix._y_dim;
+				t_matrix._val[i] = local(ni * pooling_x_dim,
+					nj * pooling_y_dim,
+					pooling_x_dim,
+					pooling_y_dim).avg();
+			}
+		}
+        return t_matrix;
+    }
+
+    // up  sampling
+    Matrix<T> up_sample(int up_x_dim, int up_y_dim) const {
+        Matrix<T> t_matrix(_x_dim * up_x_dim, _y_dim * up_y_dim);
+        for (int i = 0; i < t_matrix._x_dim * t_matrix._y_dim; i++) {
+            int ni = i / t_matrix._y_dim;
+			int nj = i % t_matrix._y_dim;
+			t_matrix._val[i] = _val[(ni / up_x_dim) * _y_dim + nj / up_y_dim];
+        }
+        return t_matrix;
+    }
+
+    Matrix<T> rotate_180() const {
+        Matrix<T> t_matrix(_x_dim, _y_dim);
+        for (int i = 0; i < _x_dim * _y_dim; i++) {
+			int ni = _x_dim - 1 - i / _y_dim;
+			int nj = _y_dim - 1 - i % _y_dim;
+			t_matrix._val[i] = _val[ni * _y_dim + nj];
+        }
+        return t_matrix;
+    }
+
+    // conv2d just like what the matlab do
+    Matrix<T> conv2d(const Matrix<T>& kernel, int shape) const {
+        Matrix<T> dst_mat(_x_dim + kernel._x_dim - 1,
+            _y_dim + kernel._y_dim - 1);
+        Matrix<T> full_mat(_x_dim + 2 * kernel._x_dim - 2,
+            _y_dim + 2 * kernel._y_dim - 2);
+        for (int i = 0; i < _x_dim * _y_dim; i++) {
+			int ni = i / _y_dim;
+			int nj = i % _y_dim;
+			full_mat._val[(ni + kernel._x_dim - 1) * _y_dim + nj + kernel._y_dim - 1] = 
+				_val[i];
+		}
+        dst_mat = full_mat.conv(kernel);
+        return dst_mat;
+    }
+    */
+	Matrix<T> local(int r, int c, int rlen, int clen) const {
+        if (r + rlen > _x_dim || c + clen > _y_dim) {
+            std::cerr << "Error when get local data [ size not match!]" << std::endl;
+            exit(1);
+        }
+        Matrix<T> t_matrix(rlen, clen);
+        for (int i = 0; i < rlen; i++) {
+            for (int j = 0; j < clen; j++) {
+                t_matrix[i][j] = _val[_y_dim * (i + r) + j + c];
+            }
+        }
+        return t_matrix;
+    }
+
+    // for CNN
+    Matrix<T> conv(const Matrix<T>& kernel) const {
+        if (kernel._x_dim > _x_dim || kernel._y_dim > _y_dim) {
+            std::cerr << "Error when conv [size not match!]" << std::endl;
+            exit(1);
+        }
+        Matrix<T> t_matrix(_x_dim - kernel._x_dim + 1,
+            _y_dim - kernel._y_dim + 1);
         for (int i = 0; i < t_matrix._x_dim; i++) {
             for (int j = 0; j < t_matrix._y_dim; j++) {
-                t_matrix[i][j] = (kernel_rotated
+                t_matrix[i][j] = (kernel.rotate_180()
                     .dot_mul(local(i, j, kernel._x_dim, kernel._y_dim))).sum();
             }
         }
@@ -422,7 +508,7 @@ public:
     Matrix<T> rotate_180() const {
         Matrix<T> t_matrix(_x_dim, _y_dim);
         for (int i = 0; i < _x_dim * _y_dim; i++) {
-            t_matrix._val[i] = 
+            t_matrix[i / _y_dim][i % _y_dim] = 
                 _val[_y_dim * (_x_dim - 1 - i / _y_dim) + _y_dim - 1 - i % _y_dim];
         }
         return t_matrix;
@@ -441,8 +527,8 @@ public:
             }
         }
         dst_mat = full_mat.conv(kernel);
-        return dst_mat;
-    }
+		return dst_mat;
+	}
 };
 
 typedef Matrix<float> matrix_float;

@@ -35,6 +35,7 @@ public:
             exit(1);
         }
         _seq_len = pre_layer->_seq_len;
+
         for (int i = 0; i < _seq_len; i++) {
             matrix_double value = pre_layer->_data[i] 
                 * _seq_full_weights + _seq_full_bias;

@@ -11,12 +11,19 @@
 
 #ifndef ACTIVE_LAYER_H
 #define ACTIVE_LAYER_H
+
 #include "layer.h"
 #include "flat_layer.h"
 #include "full_conn_layer.h"
 #include "active_func.h"
 
 namespace sub_dl {
+
+// ActiveLayer is abstracted from the common behavior and attribute of the 
+// frequently-used active layers just like sigmoid or relu active layer is 
+// only used to calculate the input and handle the error from follow layers 
+// and pass the result to layers ahead, different active layer cand inherit 
+// this layer, only replace the active func defined in active_func.h
 
 class ActiveLayer : public Layer {
 
@@ -38,7 +45,8 @@ public:
         } else if (pre_layer->_type == FULL_CONN) {
             _data.push_back(_active_func->_calc(pre_layer->_data[0]));
         } else {
-            std::cerr << "Error when " << std::endl;
+            FATAL_LOG("Layer before active layer if not legal in func[%s] line[%d]", 
+                __func__, __LINE__);
             exit(1);
         }
         _output_dim = pre_layer->_output_dim;
@@ -47,6 +55,17 @@ public:
         _pre_layer = pre_layer;
     }
 
+    /*
+    * @brief backward process of active layer, because the layer after the active layer
+    *    can be many styles, so the error can be calculated with different types
+    *
+    * @param
+    *    nxt_layer: layer after active layer
+    *
+    * @return
+    *    void
+    *
+    */
     void _backward(Layer* nxt_layer) {
         std::vector<matrix_double>().swap(_errors);
         matrix_double error;
@@ -61,7 +80,7 @@ public:
                 .dot_mul(_active_func->_diff(_pre_layer->_data[0]));
             _errors.push_back(error);
         } else if (nxt_layer->_type == FLAT) {
-            FlatternLayer* flat_layer = (FlatternLayer*) nxt_layer;
+            FlattenLayer* flat_layer = (FlattenLayer*) nxt_layer;
             for (int i = 0; i < _output_dim; i++) {
                 matrix_double error(_feature_x_dim, _feature_y_dim);
                 for (int u = 0; u < error._x_dim; u++) {
@@ -81,11 +100,10 @@ public:
                     if (conv_layer->_conn_map[i][j]) {
                         matrix_double conv2d_vec = (conv_layer->_errors[j]
                             .conv2d(conv_layer->_conv_kernels[i][j].rotate_180(), FULL))
-							.dot_mul(_active_func->_diff(_pre_layer->_data[i]));
+                            .dot_mul(_active_func->_diff(_pre_layer->_data[i]));
                         error = error + conv2d_vec;
                     }
                 }
-                //error = error.dot_mul(_active_func->_diff(_pre_layer->_data[i]));
                 _errors.push_back(error);
             }
         } else if (nxt_layer->_type == POOL) {
@@ -95,21 +113,19 @@ public:
                 matrix_double up_delta = pooling_layer->_errors[i]
                     .up_sample(pooling_layer->_pooling_x_dim, 
                     pooling_layer->_pooling_y_dim);
-				matrix_double error = up_delta
+                matrix_double error = up_delta
                     .dot_mul(_active_func->_diff(_pre_layer->_data[i])) / delta_size;
-                    //* (pooling_layer->_pooling_weights[0][i]) / delta_size;
                 _errors.push_back(error);
             }
+        } else {
+            WARN_LOG("layer[%d] after active layer is not supported yet", nxt_layer->_type);
+            exit(1);
         }
     }
 
-    void _update_gradient(int opt_type, double learning_rate) {
-    
-	}
+    void _update_gradient(int opt_type, double learning_rate) {}
 
-    void display() {
-    
-	}    
+    void display() {}
 
 };
 
@@ -137,13 +153,13 @@ public:
 
 class TanhLayer : public ActiveLayer { 
 public:
-	TanhLayer() {
-		_active_func = ActiveFuncFactory<double>::_get_instance()
-			->_produce(TANH);
-		if (NULL == _active_func) {
-			exit(1);
-		}
-	}
+    TanhLayer() {
+        _active_func = ActiveFuncFactory<double>::_get_instance()
+            ->_produce(TANH);
+        if (NULL == _active_func) {
+            exit(1);
+        }
+    }
 };
 
 }

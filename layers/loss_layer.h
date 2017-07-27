@@ -22,45 +22,39 @@ public:
     matrix_double _label;
     LossLayer(const matrix_double& label) {
         _type = LOSS;
-		_label = label;
+        _label = label;
     }
 
-	~LossLayer() {
-	}
+    ~LossLayer() {
+    }
 
-	void _update_gradient(int opt_type, double learning_rate) {
-	}
+    void _update_gradient(int opt_type, double learning_rate) {}
 
-	void display() {
-		std::cout << "---------loss layer------------" << std::endl;
-		_errors[0]._display("error");
-		_label._display("label");
-		std::cout << "---------loss layer end------------" << std::endl;
-	}
+    void display() {}
 };
 
+// mean square loss layer
 class MeanSquareLossLayer : public LossLayer {
 
 public:
 
-	MeanSquareLossLayer(const matrix_double& label) :
-		LossLayer(label) {
-
-	}
+    MeanSquareLossLayer(const matrix_double& label) :
+        LossLayer(label) {
+    }
 
     void _forward(Layer* pre_layer) {
-		std::vector<matrix_double>().swap(_data);
-		_pre_layer = pre_layer;
+        std::vector<matrix_double>().swap(_data);
+        _pre_layer = pre_layer;
         if (pre_layer->_type != ACT) {
-            std::cerr << "Error pre layer for mean square loss layer" << std::endl;
+            FATAL_LOG("Error pre layer for mean square loss layer, func[%s] line[%d]", __func__, __LINE__);
             exit(1);
         }
         matrix_double minus_result = pre_layer->_data[0] - _label; 
         _data.push_back(minus_result.dot_mul(minus_result) * 0.5);
     }
     
-	void _backward(Layer* nxt_layer) {
-		std::vector<matrix_double>().swap(_errors);
+    void _backward(Layer* nxt_layer) {
+        std::vector<matrix_double>().swap(_errors);
         _errors.push_back(_pre_layer->_data[0] - _label);
     }
 
@@ -69,11 +63,12 @@ public:
 class CrossEntropyLossLayer : public LossLayer {
 
 public:
+
     void _forward(Layer* pre_layer) {
-		std::vector<matrix_double>().swap(_data);
-		_pre_layer = pre_layer;
+        std::vector<matrix_double>().swap(_data);
+        _pre_layer = pre_layer;
         if (pre_layer->_type != FULL_CONN) {
-            std::cerr << "Error pre layer for mean square loss layer" << std::endl;
+            FATAL_LOG("Error pre layer for mean square loss layer, func[%s] line[%d]", __func__, __LINE__);
             exit(1);
         }
 

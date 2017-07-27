@@ -15,7 +15,7 @@
 namespace sub_dl {
 
 PoolingLayer::PoolingLayer(int input_dim, int output_dim, 
-	int pooling_x_dim, int pooling_y_dim,
+    int pooling_x_dim, int pooling_y_dim,
     int feature_x_dim, int feature_y_dim) {
 
     _input_dim = input_dim;
@@ -34,17 +34,7 @@ PoolingLayer::PoolingLayer(int input_dim, int output_dim,
 
 }
 
-void PoolingLayer::display() {
-       std::cout << "-----------pooling layer-----------" << std::endl;
-    _pooling_weights._display("_pooling_weights");
-       std::cout << "-------------pooling bias -----------" << std::endl;
-    _pooling_bias._display("_pooling_bias");
-    std::cout << "-----------data-----------" << std::endl;
-    for (int i = 0; i < _output_dim; i++) {
-        _data[i]._display("data");
-    }
-       std::cout << "-----------pooling layer end-----------" << std::endl;
-}
+void PoolingLayer::display() {}
 
 void PoolingLayer::_forward(Layer* pre_layer) {
     std::vector<matrix_double>().swap(_data);
@@ -58,7 +48,7 @@ void PoolingLayer::_forward(Layer* pre_layer) {
 
 void PoolingLayer::_backward(Layer* nxt_layer) {
     if (nxt_layer->_type != ACT && nxt_layer->_type != CONV) {
-        std::cerr << "Error layer type error before pooling!" << std::endl;
+        FATAL_LOG("Error layer type error before pooling! func[%s] line[%d]", __func__, __LINE__);
         exit(1);
     }
 

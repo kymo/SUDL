@@ -48,34 +48,7 @@ ConvLayer::ConvLayer(int input_dim, int output_dim,
 
 }
 
-void ConvLayer::display() {
-    std::cout << "----------conv layer----------" << std::endl;
-    std::cout << "-----------feature map------" << std::endl;
-    for (int i = 0; i < _output_dim;i ++) {
-        std::cout << "feature map " << i << std::endl;
-        _data[i]._display();
-    }
-    std::cout << "-----------kernel------" << std::endl;
-    for (int i = 0; i < _input_dim;i ++) {
-        for (int j = 0; j < _output_dim;j ++) {
-            std::cout << "kernel " << i << " " << j << std::endl;
-            if (_conn_map[i][j]) {
-                _conv_kernels[i][j]._display();
-            } else {
-                std::cout << "NULL" << std::endl;
-            }
-        }
-    }
-    std::cout << "-----------bias-------" << std::endl;
-    _conv_bias._display();
-    std::cout << "---error--" << std::endl;
-    if (_errors.size() > 0) {
-        for (int i = 0; i < _output_dim; i++) {
-            _errors[i]._display();
-        }
-    }
-    std::cout << "----------conv layer end----------" << std::endl;
-}
+void ConvLayer::display() {}
 
 void ConvLayer::_forward(Layer* pre_layer) {
     // save the pre layer pointer for backward weight update
@@ -94,7 +67,7 @@ void ConvLayer::_forward(Layer* pre_layer) {
 
 void ConvLayer::_backward(Layer* nxt_layer) {
     if (nxt_layer->_type != ACT) {
-        std::cerr << "Wrong layer type after conv layer!" << std::endl;
+        FATAL_LOG("Wrong layer type after convonv layer! func[%s] line[%d]", __func__, __LINE__);
         exit(1);
     }
     std::vector<matrix_double>().swap(_errors);
@@ -112,6 +85,7 @@ void ConvLayer::_backward(Layer* nxt_layer) {
     } else if (nxt_layer->_type == ACT) {
         _errors = nxt_layer->_errors;    
     }
+
     for (int i = 0; i < _output_dim; i++) {
         // update kernel weights
         for (int j = 0; j < _input_dim; j++) {

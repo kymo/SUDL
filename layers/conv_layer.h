@@ -19,15 +19,22 @@ namespace sub_dl {
 class ConvLayer : public Layer {
 
 public:
+    // kernel x dimention
     int _kernel_x_dim;
+    // kernel y dimention
     int _kernel_y_dim;
     
+    // connection map between the input & output feature maps
     matrix_int _conn_map;
     
+    // convolutional kernels
     Matrix<matrix_double> _conv_kernels;
+    // convolutional bias
     matrix_double _conv_bias;
     
+    // gradient of convolutional kernels
     Matrix<matrix_double> _delta_conv_kernels;
+    // gradient of convolutional bias
     matrix_double _delta_conv_bias;
 
     virtual ~ConvLayer() {}
@@ -51,10 +58,13 @@ public:
         _conn_map = conn_map;
     }
 
+    // forward process
     void _forward(Layer* pre_layer);
-
+    
+    // backwards process
     void _backward(Layer* nxt_layer);
     
+    // update weights
     void _update_gradient(int opt_type, double learning_rate);
 
 };

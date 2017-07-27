@@ -33,8 +33,8 @@ public:
     // gradient of _hidden_bias
     matrix_double _delta_hidden_bias;
 
-	// pre layer data 
-	std::vector<matrix_double> _pre_layer_data;
+    // pre layer data 
+    std::vector<matrix_double> _pre_layer_data;
     double _eta;
     double _clip_gra;
 
@@ -77,7 +77,7 @@ public:
             _data.push_back(pre_hidden_vals);
         }
         _pre_layer = pre_layer;
-		_pre_layer_data = pre_layer->_data;
+        _pre_layer_data = pre_layer->_data;
     }
 
     void _backward(Layer* nxt_layer) {
@@ -114,18 +114,8 @@ public:
         std::reverse(_errors.begin(), _errors.end());
     }
 
-    void display() {
-        std::cout << "---------rnn cell----------" << std::endl;
-        _input_hidden_weights._display("_input_hidden_weights.add");
-        _hidden_bias._display("_hidden_bias.add");
-        _hidden_weights._display("_hidden_weights");
-        for (int i = 0; i < _seq_len; i++) {
-            _data[i]._display("data[i]");
-        }
-        for (int i = 0; i < _seq_len; i++) {
-            _errors[i]._display("error");
-        }
-    }
+    void display() {}
+
     void _update_gradient(int opt_type, double learning_rate) {
         if (opt_type == SGD) {
             _input_hidden_weights.add(_delta_input_hidden_weights * learning_rate);

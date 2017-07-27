@@ -20,10 +20,10 @@
 namespace sub_dl {
 
 enum {
-    SIGMOID = 0,
-    RELU,
-	TANH,
-    LEAKY_RELU
+    SIGMOID = 0,        // sigmoid
+    RELU,                // relu
+    TANH,                // tanh
+    LEAKY_RELU            // leaky relu
 };
 
 template <typename T>
@@ -36,10 +36,12 @@ public:
 template <typename T>
 class Sigmoid : public ActiveFunc<T> {
 public:
+    // sigmoid calculation
     Matrix<T> _calc(const Matrix<T>& matrix) {
         return sigmoid_m(matrix);
     }
     
+    // sigmoid diff
     Matrix<T> _diff(const Matrix<T>& matrix) {
         return sigmoid_m_diff(sigmoid_m(matrix));
     }
@@ -52,6 +54,8 @@ class LeakyRelu {
 template <typename T>
 class Relu : public ActiveFunc<T>{
 public:
+
+    // relu calculation
     Matrix<T> _calc(const Matrix<T>& matrix) {
         Matrix<T> t_matrix(matrix._x_dim, matrix._y_dim);
         for (int i = 0; i < matrix._x_dim; i++) {
@@ -62,6 +66,7 @@ public:
         return t_matrix;
     }
     
+    // relu differential
     Matrix<T> _diff(const Matrix<T>& matrix) {
         Matrix<T> t_matrix(matrix._x_dim, matrix._y_dim);
         for (int i = 0; i < matrix._x_dim; i++) {
@@ -76,13 +81,13 @@ public:
 template <typename T>
 class Tanh : public ActiveFunc<T> {
 public:
-	Matrix<T> _calc(const Matrix<T>&matrix) {
-		return tanh_m(matrix);
-	}
-	
-	Matrix<T> _diff(const Matrix<T>& matrix) {
-		return tanh_m_diff(tanh_m(matrix));
-	}
+    Matrix<T> _calc(const Matrix<T>&matrix) {
+        return tanh_m(matrix);
+    }
+    
+    Matrix<T> _diff(const Matrix<T>& matrix) {
+        return tanh_m_diff(tanh_m(matrix));
+    }
 };
 
 template <typename T>
@@ -101,6 +106,7 @@ public:
         return _instance;
     }
 
+    // create the active func according to the func type
     ActiveFunc<T>* _produce(int active_func_type) {
         switch(active_func_type) {
         case SIGMOID:
@@ -109,9 +115,9 @@ public:
         case RELU:
             return new Relu<T>();
             break;
-		case TANH:
-			return new Tanh<T>();
-			break;
+        case TANH:
+            return new Tanh<T>();
+            break;
         }
     }
 };

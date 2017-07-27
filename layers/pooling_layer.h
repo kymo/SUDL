@@ -15,33 +15,34 @@
 #include "layer.h"
 
 namespace sub_dl {
-
 class PoolingLayer : public Layer {
 
 public:
     int _pooling_x_dim;
     int _pooling_y_dim;
     int _pooling_type; // 0 max_pooling 1 avg_pooling
+    
     matrix_double _pooling_weights;
     matrix_double _pooling_bias;
     matrix_double _delta_pooling_weights;
     matrix_double _delta_pooling_bias;
-    virtual ~ PoolingLayer() {}
-    
-    PoolingLayer() {}
 
+    virtual ~ PoolingLayer() {}
+    PoolingLayer(int pooling_type = 0) {
+        _pooling_type = pooling_type;
+    }
+    
     PoolingLayer(int input_dim, int output_dim, 
         int pooling_x_dim, int pooling_y_dim, 
         int feature_x_dim, int feature_y_dim);
 
     void display();
-    
+    // forward
     void _forward(Layer* pre_layer);
-    
+    // backward
     void _backward(Layer* _nxt_layer);
 
-	void _update_gradient(int opt_type, double learning_rate) {
-	}
+    void _update_gradient(int opt_type, double learning_rate) {}
 };
 
 }

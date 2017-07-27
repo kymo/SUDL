@@ -42,10 +42,10 @@ public:
         std::vector<matrix_double>().swap(_data);
 
         if (pre_layer->_type != RNN_CELL 
-			&& pre_layer->_type != LSTM_CELL 
-			&& pre_layer->_type != BI_LSTM_CELL
-			&& pre_layer->_type != BI_RNN_CELL) {
-            std::cerr << "Layer before seq faull conn layer is not rnn cell!" << std::endl;
+            && pre_layer->_type != LSTM_CELL 
+            && pre_layer->_type != BI_LSTM_CELL
+            && pre_layer->_type != BI_RNN_CELL) { 
+            FATAL_LOG("Layer before seq faull conn layer is not rnn cell! func[%s] line[%d]", __func__, __LINE__);
             exit(1);
         }
         _seq_len = pre_layer->_seq_len;
@@ -62,7 +62,7 @@ public:
     void _backward(Layer* nxt_layer) {
         
         if (nxt_layer->_type != SEQ_ACT) {
-            std::cerr << "nxt nxt_layer is not seq loss nxt_layer!" << std::endl;
+            FATAL_LOG("next layer is not seq loss layer! func[%s] line[%d]", __func__, __LINE__);
             exit(1);
         }
         std::vector<matrix_double>().swap(_errors);
@@ -76,18 +76,7 @@ public:
 
     }
 
-    void display() {
-        std::cout << "------------full conn layer ----------" << std::endl;
-        _seq_full_weights._display("_seq_full_weights");
-        _seq_full_bias._display("_seq_full_bias");
-        for (int i = 0; i < _seq_len; i++ ){
-            _data[i]._display("data");
-        }
-        for (int i = 0; i < _seq_len; i++) {
-            _errors[i]._display("error");
-        }
-        
-    }
+    void display() {}
 
     void _update_gradient(int opt_type, double learning_rate) {
         if (opt_type == SGD) {

@@ -47,15 +47,8 @@ public:
         std::reverse(_errors.begin(), _errors.end());
     }
     
-    void display() {
-        std::cout << "-----------seq active alyer-------" << std::endl;
-        for (int i = 0; i < _seq_len; i++) {
-            _data[i]._display("_data.push_back");
-        }
-        for (int i = 0; i < _seq_len; i++) {
-            _errors[i]._display("error");
-        }
-    }
+    void display() { }
+
     void _update_gradient(int opt_type, double learning_rate) {
     }
 
@@ -95,16 +88,7 @@ public:
 
     }
 
-    void display() {
-        std::cout << "--------seq loss layer ----------" << std::endl;
-        _label._display("label");
-        for (int t = 0; t < _seq_len; t++) {
-            _data[t]._display("data");
-        }
-        for (int t = 0; t < _seq_len; t++) {
-            _errors[t]._display("error");
-        }
-    }
+    void display() {}
 
     void _update_gradient(int opt_type, double learning_rate) {
     }

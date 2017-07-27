@@ -9,8 +9,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. 
 
-#ifndef BI_RNN_CELL_H
-#define BI_RNN_CELL_H
+#ifndef BI_CELL_WRAPPER_H
+#define BI_CELL_WRAPPER_H
 
 #include "layer.h"
 #include "rnn_cell.h"
@@ -21,7 +21,7 @@ namespace sub_dl {
 // the T stands for the different type of rnn cells, T can be RnnCell 
 // LstmCell or GruCell if you want to build Bi-directional cell version
 template <typename T>
-class BiRnnCell : public Layer {
+class BiCellWrapper : public Layer {
 
 public:
     T *_pos_seq_cell;
@@ -40,7 +40,7 @@ public:
     *    void
     * 
     */
-    BiRnnCell(int seq_input_dim, int seq_output_dim,
+    BiCellWrapper(int seq_input_dim, int seq_output_dim,
         bool pos_use_peephole,
         bool neg_use_peephole,
         int cell_type) {
@@ -64,7 +64,7 @@ public:
     *    void
     * 
     */
-    BiRnnCell(int seq_input_dim,
+    BiCellWrapper(int seq_input_dim,
         int seq_output_dim,
         int cell_type) {
     
@@ -88,13 +88,13 @@ public:
         std::vector<matrix_double>().swap(_data);
         _seq_len = pre_layer->_seq_len;
         if (pre_layer->_type == BI_RNN_CELL) {
-            BiRnnCell<RnnCell>* bi_rnn_cell = (BiRnnCell<RnnCell>*) pre_layer;
+            BiCellWrapper<RnnCell>* bi_rnn_cell = (BiCellWrapper<RnnCell>*) pre_layer;
             _pos_seq_cell->_forward(bi_rnn_cell->_pos_seq_cell);
             _neg_seq_cell->_forward(bi_rnn_cell->_neg_seq_cell);
         } else if (pre_layer->_type == BI_LSTM_CELL) {
-            BiRnnCell<LstmCell>* bi_rnn_cell = (BiRnnCell<LstmCell>*) pre_layer;
-            _pos_seq_cell->_forward(bi_rnn_cell->_pos_seq_cell);
-            _neg_seq_cell->_forward(bi_rnn_cell->_neg_seq_cell);
+            BiCellWrapper<LstmCell>* bi_lstm_cell = (BiCellWrapper<LstmCell>*) pre_layer;
+            _pos_seq_cell->_forward(bi_lstm_cell->_pos_seq_cell);
+            _neg_seq_cell->_forward(bi_lstm_cell->_neg_seq_cell);
         } else {
             _pos_seq_cell->_forward(pre_layer);
             // reverse the pre layer data
@@ -113,13 +113,13 @@ public:
     void _backward(Layer* nxt_layer) {
         
         if (nxt_layer->_type == BI_RNN_CELL) {
-            BiRnnCell<RnnCell>* bi_rnn_cell = (BiRnnCell<RnnCell>*) nxt_layer;
+            BiCellWrapper<RnnCell>* bi_rnn_cell = (BiCellWrapper<RnnCell>*) nxt_layer;
             _pos_seq_cell->_backward(bi_rnn_cell->_pos_seq_cell);
             _neg_seq_cell->_backward(bi_rnn_cell->_neg_seq_cell);
         } else if (nxt_layer->_type == BI_LSTM_CELL) {
-            BiRnnCell<LstmCell>* bi_rnn_cell = (BiRnnCell<LstmCell>*) nxt_layer;
-            _pos_seq_cell->_backward(bi_rnn_cell->_pos_seq_cell);
-            _neg_seq_cell->_backward(bi_rnn_cell->_neg_seq_cell);
+            BiCellWrapper<LstmCell>* bi_lstm_cell = (BiCellWrapper<LstmCell>*) nxt_layer;
+            _pos_seq_cell->_backward(bi_lstm_cell->_pos_seq_cell);
+            _neg_seq_cell->_backward(bi_lstm_cell->_neg_seq_cell);
         } else {
             _pos_seq_cell->_backward(nxt_layer);
             // reverse the pre layer error

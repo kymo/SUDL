@@ -17,7 +17,7 @@
 #include "seq_loss_layer.h"
 #include "rnn_cell.h"
 #include "lstm_cell.h"
-#include "birnn_cell.h"
+#include "bi_cell_wrapper.h"
 #include "matrix.h"
 #include "embedding_layer.h"
 #include "util.h"
@@ -151,13 +151,13 @@ public:
                 gradient_weights_check(feature, label, lstm_cell->_ig_input_weights, lstm_cell->_ig_delta_input_weights);
             } else if (_layers[l]->_type == BI_LSTM_CELL) {
                 std::cout << "------------Gradient Check for bi lstm cell layer -------------" << std::endl;
-                LstmCell* lstm_cell = ((BiRnnCell<LstmCell>*) _layers[l])->_pos_seq_cell;
+                LstmCell* lstm_cell = ((BiCellWrapper<LstmCell>*) _layers[l])->_pos_seq_cell;
                 gradient_weights_check(feature, label, lstm_cell->_ig_input_weights, lstm_cell->_ig_delta_input_weights);
                 gradient_weights_check(feature, label, lstm_cell->_og_input_weights, lstm_cell->_og_delta_input_weights);
                 gradient_weights_check(feature, label, lstm_cell->_fg_input_weights, lstm_cell->_fg_delta_input_weights);
             } else if (_layers[l]->_type == BI_RNN_CELL) {
                 std::cout << "------------Gradient Check for bi rnn cell layer -------------" << std::endl;
-                RnnCell* rnn_cell = ((BiRnnCell<RnnCell>*) _layers[l])->_pos_seq_cell;
+                RnnCell* rnn_cell = ((BiCellWrapper<RnnCell>*) _layers[l])->_pos_seq_cell;
                 gradient_weights_check(feature, label, rnn_cell->_input_hidden_weights, rnn_cell->_delta_input_hidden_weights);
                 gradient_weights_check(feature, label, rnn_cell->_hidden_weights, rnn_cell->_delta_hidden_weights);
             }

@@ -33,6 +33,8 @@ public:
     // gradient of _hidden_bias
     matrix_double _delta_hidden_bias;
 
+	// pre layer data 
+	std::vector<matrix_double> _pre_layer_data;
     double _eta;
     double _clip_gra;
 
@@ -75,6 +77,7 @@ public:
             _data.push_back(pre_hidden_vals);
         }
         _pre_layer = pre_layer;
+		_pre_layer_data = pre_layer->_data;
     }
 
     void _backward(Layer* nxt_layer) {
@@ -100,7 +103,7 @@ public:
             matrix_double hidden_error = (nxt_layer->_errors[t] * pre_layer_weights._T()
                 + nxt_hidden_error * _hidden_weights._T())
                 .dot_mul(tanh_m_diff(_data[t]));
-            _delta_input_hidden_weights.add(_pre_layer->_data[t]._T() * hidden_error);
+            _delta_input_hidden_weights.add(_pre_layer_data[t]._T() * hidden_error);
             if (t > 0) {
                 _delta_hidden_weights.add(_data[t - 1]._T() * hidden_error);
             }

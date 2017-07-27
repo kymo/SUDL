@@ -87,6 +87,7 @@ public:
     std::vector<matrix_double> _new_cell_errors;
 
     LSTM_OUT _lstm_layer_values; 
+	std::vector<matrix_double> _pre_layer_data;
 
     bool _use_peephole;
     double _eta;
@@ -95,6 +96,7 @@ public:
     LstmCell(int input_dim, int output_dim, bool use_peephole) {
         _input_dim = input_dim;
         _output_dim = output_dim;
+
 
         _type = LSTM_CELL;
 
@@ -208,7 +210,8 @@ public:
             _data.push_back(pre_hidden_vals);
         }
         _pre_layer = pre_layer;
-    }
+    	_pre_layer_data = pre_layer->_data;
+	}
 
     void _backward(Layer* nxt_layer) {
         if (nxt_layer->_type != SEQ_FULL 
@@ -327,7 +330,7 @@ public:
             _og_errors.push_back(og_error);
             _new_cell_errors.push_back(new_cell_error);
 
-            const matrix_double& xt_trans = _pre_layer->_data[t]._T();
+            const matrix_double& xt_trans = _pre_layer_data[t]._T();
             
             _ig_delta_input_weights.add(xt_trans * ig_error);
             _fg_delta_input_weights.add(xt_trans * fg_error);
@@ -367,7 +370,11 @@ public:
     }
 
     void display() {
-    }
+    	std::cout << "----------lstm cell---------" << std::endl;
+		for (int i = 0; i < _data.size(); i++) {
+			_data[i]._display("data");
+		}
+	}
 
     void _update_gradient(int opt_type, double learning_rate) {
         if (opt_type == SGD) {

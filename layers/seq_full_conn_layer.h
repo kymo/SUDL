@@ -43,7 +43,8 @@ public:
 
         if (pre_layer->_type != RNN_CELL 
 			&& pre_layer->_type != LSTM_CELL 
-			&& pre_layer->_type != BI_LSTM_CELL) {
+			&& pre_layer->_type != BI_LSTM_CELL
+			&& pre_layer->_type != BI_RNN_CELL) {
             std::cerr << "Layer before seq faull conn layer is not rnn cell!" << std::endl;
             exit(1);
         }

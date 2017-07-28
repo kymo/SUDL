@@ -7,13 +7,17 @@ A light deep learning tools box by c++
 **Network Architecture**
 1. Convolutional Neural Network 
 2. Normal Neural Network
-3. Reccurent Neural Network with three mainstream varieties(LSTM, LSTM-peelhole, GRU)(deep arcitecture supported)
-4. bi-directional LSTM & GRU & RNN(deep arcitecture supported)
+3. Reccurent Neural Network with three mainstream varieties(LSTM, LSTM-peelhole, GRU)(deep architecture supported)
+4. bi-directional LSTM(peephole) & GRU & RNN (deep architecture supported)
 
 **Nonlinearities**
 1. ReLU
 2. Sigmoid
 3. tanh
+
+**TODO**
+1. GPU supported
+2. network architecture configurable 
 
 **Usage**
 1. ANN

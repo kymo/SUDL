@@ -19,7 +19,7 @@ public:
 
     WordEmbeddingLayer(int output_dim) {
         _output_dim = output_dim;
-		_type = EMB;
+        _type = EMB;
     }
     
     /*

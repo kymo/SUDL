@@ -12,10 +12,10 @@
 #ifndef ACTIVE_FUNC_H
 #define ACTIVE_FUNC_H
 
-#include "util.h"
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include "util.h"
 
 namespace sub_dl {
 

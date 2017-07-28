@@ -79,7 +79,7 @@ public:
     // active func
     ActiveFunc<double>* _active_func;
 
-	// virtual forward function
+    // virtual forward function
     virtual void _forward(Layer* pre_layer) = 0;
     virtual void _backward(Layer* nxt_layer) = 0;
     virtual void _update_gradient(int opt_type, double learning_rate) = 0;

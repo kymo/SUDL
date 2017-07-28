@@ -22,9 +22,9 @@ class FullConnSoftmaxLayer : public BaseFullConnLayer {
 public:
     virtual ~FullConnSoftmaxLayer() {}
     FullConnSoftmaxLayer() {}
-	
-	void _forward(Layer* pre_layer);
-	void _backward(Layer* nxt_layer);
+    
+    void _forward(Layer* pre_layer);
+    void _backward(Layer* nxt_layer);
 
 };
 

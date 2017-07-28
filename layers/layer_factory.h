@@ -5,16 +5,16 @@
 
 
 class LayerFactory {
-	
+    
 SINGLEINS(LayerFactory)
 
 public:
-	
-	static Layer* _produce(int layer_type) {
-		switch(layer_type) {
+    
+    static Layer* _produce(int layer_type) {
+        switch(layer_type) {
 
-		}
-	}
+        }
+    }
 
 }
 

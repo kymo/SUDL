@@ -53,8 +53,27 @@ public:
 
     NetWrapper(int output_dim) {
         _output_dim = output_dim;
+        _data_layer = new DataFeedLayer();
+        _loss_layer = new T();
     }
 
+    ~NetWrapper() {
+        if (_data_layer != NULL) {
+            delete _data_layer;
+            _data_layer = NULL;
+        }
+        if (_loss_layer != NULL) {
+            delete _loss_layer;
+            _loss_layer = NULL;
+        }
+    }
+
+    // data layer
+    DataFeedLayer* _data_layer;
+
+    // loss layer
+    T* _loss_layer;
+    
     // layers of the net
     std::vector<Layer*> _layers;
 
@@ -83,16 +102,12 @@ public:
     void _forward(const std::vector<matrix_double>& feature) {
         // const matrix_double& feature) {
 
-        DataFeedLayer* data_layer = new DataFeedLayer(feature);
-        Layer* pre_layer = data_layer;
+        _data_layer->_set_data(feature);
+        Layer* pre_layer = _data_layer;
         for (auto layer : _layers) {
             layer->_forward(pre_layer);
             pre_layer = layer;
         }
-        // if (NULL != data_layer) {
-       //     delete data_layer;
-       //     data_layer = NULL;
-        //}
     }
     
     /*
@@ -207,23 +222,23 @@ public:
     }
 
     double _backward(const matrix_double& label) {
-        T* loss_layer = new T(label);
-        loss_layer->_forward(_layers.back());
-        loss_layer->_backward(NULL);
-        
-        Layer* nxt_layer = loss_layer;
+        if (_loss_layer == NULL) {
+            FATAL_LOG("Error when call loss layer! func[%s] line[%d]", __func__, __LINE__);
+            exit(1);
+        }
+        _loss_layer->_set_label(label);
+        _loss_layer->_forward(_layers.back());
+        _loss_layer->_backward(NULL);
+        Layer* nxt_layer = _loss_layer;
         double cost = 0.0;
-        for (int i = 0; i < loss_layer->_data.size(); i++) {
-            cost += loss_layer->_data[i].sum();
+        for (int i = 0; i < _loss_layer->_data.size(); i++) {
+            cost += _loss_layer->_data[i].sum();
         }
         for (int j = _layers.size() - 1; j >= 0; j--) {
             _layers[j]->_backward(nxt_layer);
             nxt_layer = _layers[j];
         }
-        if (NULL != loss_layer) {
-            delete loss_layer;
-            loss_layer = NULL;
-        }
+
         return cost;
     }
 
@@ -249,7 +264,7 @@ public:
             // forward
             _forward(batch_x[i]);
             cost += _backward(label);
-            _gradient_check(batch_x[i], label);
+            // _gradient_check(batch_x[i], label);
             _update_gradient();
         }
         return cost;

@@ -91,16 +91,16 @@ class DataFeedLayer: public Layer {
 
 public:
 
-    DataFeedLayer (const std::vector<matrix_double>& data) {
+    DataFeedLayer () {
         _type = INPUT;
-        _data = data;
     }
     ~DataFeedLayer() {
     }
 
-    void _set_data(const std::vector<matrix_double>& data) {
-        _data = data;
-    }
+	void _set_data(const std::vector<matrix_double>& data) {
+		_data = data;
+	}
+
     void _forward(Layer* pre_layer) {}
     void _backward(Layer* nxt_laery) {}
 

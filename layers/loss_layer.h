@@ -20,13 +20,16 @@ class LossLayer : public Layer {
 
 public:
     matrix_double _label;
-    LossLayer(const matrix_double& label) {
+    LossLayer() {
         _type = LOSS;
-        _label = label;
     }
 
     ~LossLayer() {
     }
+
+	void _set_label(const matrix_double& label) {
+		_label = label;
+	}
 
     void _update_gradient(int opt_type, double learning_rate) {}
 
@@ -38,9 +41,9 @@ class MeanSquareLossLayer : public LossLayer {
 
 public:
 
-    MeanSquareLossLayer(const matrix_double& label) :
-        LossLayer(label) {
-    }
+    MeanSquareLossLayer() : LossLayer() {
+
+	}
 
     void _forward(Layer* pre_layer) {
         std::vector<matrix_double>().swap(_data);

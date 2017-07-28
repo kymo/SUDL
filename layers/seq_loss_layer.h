@@ -59,18 +59,21 @@ class SeqLossLayer : public Layer {
 public:
     matrix_double _label;
 
-    SeqLossLayer(const matrix_double& label) {
-        _label = label;
+    SeqLossLayer() {
         _type = SEQ_LOSS;
     }
+	
+	void _set_label(const matrix_double& label) {
+        _label = label;
+	}
 
     void _forward(Layer* pre_layer) {        
         std::vector<matrix_double>().swap(_data);
         _seq_len = pre_layer->_seq_len;
         _output_dim = pre_layer->_output_dim;
         _input_dim = pre_layer->_input_dim;
-        
-        for (int t = 0; t < _seq_len; t++) {
+       	 
+		for (int t = 0; t < _seq_len; t++) {
             matrix_double diff_val = pre_layer->_data[t] - _label._R(t);
             _data.push_back((diff_val.dot_mul(diff_val)) * 0.5);
         }

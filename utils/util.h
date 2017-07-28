@@ -37,29 +37,29 @@ static std::string merge(const Matrix<T>& output_val, int wordseg) {
 }
 
 template <typename T>
-static void gradient_clip(Matrix<T>& matrix, double clip_gra) {	
-	T tot = 0.0;
+static void gradient_clip(Matrix<T>& matrix, double clip_gra) {    
+    T tot = 0.0;
     for (size_t i = 0; i < matrix._x_dim; i++) {
         for (size_t j = 0; j < matrix._y_dim; j++) {
             tot += (matrix[i][j] * matrix[i][j]);
         }
     }
-	T val = sqrt(tot);
-	if (val > clip_gra) {
-		T scale = clip_gra / val;
-		for (int i = 0; i < matrix._x_dim; i++) {
-			for (int j = 0; j < matrix._y_dim; j++) {
-				matrix[i][j] *= scale;
-			}
-		}
-	}
+    T val = sqrt(tot);
+    if (val > clip_gra) {
+        T scale = clip_gra / val;
+        for (int i = 0; i < matrix._x_dim; i++) {
+            for (int j = 0; j < matrix._y_dim; j++) {
+                matrix[i][j] *= scale;
+            }
+        }
+    }
 }
 
 template <typename T>
 static T tanh(T x) {
-	if (x > 400) {
-		return 1.0;
-	}
+    if (x > 400) {
+        return 1.0;
+    }
     return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
 }
 
@@ -140,35 +140,35 @@ Matrix<T> log_m(const Matrix<T>& matrix) {
 }
 
 static void split(const std::string& str, 
-		const std::string& delim,
-		std::vector<std::string>& ret) {
-	if (str.size() <= 0 || delim.size() <= 0) {
-		ret.clear();
-		return;
-	}
-	ret.clear();
-	int last = 0;
-	int index = str.find_first_of(delim, last);
-	while (index != -1) {
-		ret.push_back(str.substr(last, index - last));
-		last = index + 1;
-		index = str.find_first_of(delim, last);
-	}
-	if (index == -1 && str[str.size() - 1] != '\t') {
-		ret.push_back(str.substr(last, str.size() - last));
-	}
+        const std::string& delim,
+        std::vector<std::string>& ret) {
+    if (str.size() <= 0 || delim.size() <= 0) {
+        ret.clear();
+        return;
+    }
+    ret.clear();
+    int last = 0;
+    int index = str.find_first_of(delim, last);
+    while (index != -1) {
+        ret.push_back(str.substr(last, index - last));
+        last = index + 1;
+        index = str.find_first_of(delim, last);
+    }
+    if (index == -1 && str[str.size() - 1] != '\t') {
+        ret.push_back(str.substr(last, str.size() - last));
+    }
 }
 
 static void label_encode(const matrix_double& label_id_vec,
-		matrix_double& label, int label_dim) {
-	if (label_id_vec._x_dim == 0 || label_id_vec._y_dim == 0) {
-		std::cerr << "Error when label encode!" << std::endl;
-		exit(1);
-	}
-	label.resize(label_id_vec._y_dim, label_dim);
-	for (int i = 0; i < label_id_vec._y_dim; i++) {
-		label[i][int(label_id_vec[0][i])] = 1;
-	}
+        matrix_double& label, int label_dim) {
+    if (label_id_vec._x_dim == 0 || label_id_vec._y_dim == 0) {
+        std::cerr << "Error when label encode!" << std::endl;
+        exit(1);
+    }
+    label.resize(label_id_vec._x_dim, label_dim);
+    for (int i = 0; i < label_id_vec._x_dim; i++) {
+        label[i][int(label_id_vec[i][0])] = 1;
+    }
 }
 
 }

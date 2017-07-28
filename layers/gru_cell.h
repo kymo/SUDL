@@ -77,7 +77,7 @@ public:
     */
     void _forward(Layer* pre_layer);
 
-	void _backward(Layer* nxt_layer);
+    void _backward(Layer* nxt_layer);
 
     void display() {}
 

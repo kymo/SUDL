@@ -25,9 +25,10 @@ template <typename T>
 class BiCellWrapper : public Layer {
 
 public:
-	// positive sequence cell, from t = 1 to T
+    
+    // positive sequence cell, from t = 1 to T
     T *_pos_seq_cell;
-	// negative sequence cell, from t = T to 1
+    // negative sequence cell, from t = T to 1
     T *_neg_seq_cell;
     
     /*
@@ -152,13 +153,7 @@ public:
         }
     }
 
-    void display() {
-        _pos_seq_cell->display();
-        _neg_seq_cell->display();
-        for (int i = 0; i < _data.size(); i++) {
-            _data[i]._display("data");
-        }
-    }
+    void display() {}
 
     void _update_gradient(int opt_type, double learning_rate) {
         if (opt_type == SGD) {
@@ -168,6 +163,6 @@ public:
     }
 };
 
-};
+}
 
 #endif

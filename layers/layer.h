@@ -29,7 +29,7 @@ enum {
     LOSS,            // loss layer
     ACT,             // active layer(sigmoid,relu,tanh)
     FLAT,            // flatten layer
-    EMB,            // embedding layer
+    EMB,             // embedding layer
     SEQ_FULL,        // sequence full connected layer
     SEQ_SOFTMAX,     // sequence softmax layer
     SEQ_ACT,         // sequence active layer
@@ -79,6 +79,7 @@ public:
     // active func
     ActiveFunc<double>* _active_func;
 
+	// virtual forward function
     virtual void _forward(Layer* pre_layer) = 0;
     virtual void _backward(Layer* nxt_layer) = 0;
     virtual void _update_gradient(int opt_type, double learning_rate) = 0;

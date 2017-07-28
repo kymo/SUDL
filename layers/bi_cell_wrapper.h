@@ -56,12 +56,13 @@ public:
     }
 
     /*
+    * @brief constuct function for bi-gru or bi-rnn
+    @
     * @param
     *    seq_input_dim: feature dimention in time t
     *    seq_output_dim: label dimention in time t
     *    cell_type:
     *        BI_GRU_CELL GruCell
-    *        BI_LSTM_CELL LstmCell
     *        BI_GRU_CELL GruCell
     *
     * @return
@@ -91,7 +92,7 @@ public:
     /*
     * @brief forward process of bi-directional cell, if the pre layer of 
     *     of current cell if also bi-directional cell, just link the input
-    *    and output of each time.
+    *     and output of each time.
     *
     * @param
     *    pre_layer: pre layer

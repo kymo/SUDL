@@ -9,7 +9,7 @@
 namespace sub_dl {
 
 template <typename T>
-int merge(const Matrix<T>& output_val) {
+static int merge(const Matrix<T>& output_val) {
     int val = 0;
     int d = 1;
     for (int i = 8; i >= 1; i--) {
@@ -19,7 +19,7 @@ int merge(const Matrix<T>& output_val) {
 }
 
 template <typename T>
-std::string merge(const Matrix<T>& output_val, int wordseg) {
+static std::string merge(const Matrix<T>& output_val, int wordseg) {
     std::string ret = "";
     for (int i = 0; i < output_val._x_dim; i++) {
         int d = 1;
@@ -37,7 +37,7 @@ std::string merge(const Matrix<T>& output_val, int wordseg) {
 }
 
 template <typename T>
-void gradient_clip(Matrix<T>& matrix, double clip_gra) {	
+static void gradient_clip(Matrix<T>& matrix, double clip_gra) {	
 	T tot = 0.0;
     for (size_t i = 0; i < matrix._x_dim; i++) {
         for (size_t j = 0; j < matrix._y_dim; j++) {
@@ -56,7 +56,7 @@ void gradient_clip(Matrix<T>& matrix, double clip_gra) {
 }
 
 template <typename T>
-T tanh(T x) {
+static T tanh(T x) {
 	if (x > 400) {
 		return 1.0;
 	}
@@ -64,7 +64,7 @@ T tanh(T x) {
 }
 
 template <typename T>
-T sigmoid(T x) {
+static T sigmoid(T x) {
     return 1.0 / (1 + exp(-x));
 }
 
@@ -139,7 +139,7 @@ Matrix<T> log_m(const Matrix<T>& matrix) {
     return ret_val;
 }
 
-void split(const std::string& str, 
+static void split(const std::string& str, 
 		const std::string& delim,
 		std::vector<std::string>& ret) {
 	if (str.size() <= 0 || delim.size() <= 0) {
@@ -159,7 +159,7 @@ void split(const std::string& str,
 	}
 }
 
-void label_encode(const matrix_double& label_id_vec,
+static void label_encode(const matrix_double& label_id_vec,
 		matrix_double& label, int label_dim) {
 	if (label_id_vec._x_dim == 0 || label_id_vec._y_dim == 0) {
 		std::cerr << "Error when label encode!" << std::endl;

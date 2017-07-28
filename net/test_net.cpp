@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <fstream>
-#include "netword_wrapper.h"
+#include "net_wrapper.h"
 
 #define SAMPLE_SEP ";"
 #define FEATURE_SEP " "

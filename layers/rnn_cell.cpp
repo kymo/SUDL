@@ -48,7 +48,11 @@ void RnnCell::_forward(Layer* pre_layer) {
 }
 
 void RnnCell::_backward(Layer* nxt_layer) {
-    if (nxt_layer->_type != SEQ_FULL && nxt_layer->_type != RNN_CELL) {
+    if (nxt_layer->_type != SEQ_FULL
+        && nxt_layer->_type != RNN_CELL 
+        && nxt_layer->_type != LSTM_CELL 
+        && nxt_layer->_type != GRU_CELL) { 
+        FATAL_LOG("Layer before rnn is illegal! func[%s] line[%d]", __func__, __LINE__);
         exit(1);
     }
     std::vector<matrix_double>().swap(_errors);

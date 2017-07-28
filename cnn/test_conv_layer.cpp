@@ -182,7 +182,7 @@ void test_cnn(int argc, char*argv[]) {
 	//layers.push_back(new SigmoidLayer());
 	layers.push_back(new ConvLayer(6, 10, 2, 2, 3, 3));
 	layers.push_back(new ReluLayer());
-	layers.push_back(new FlatternLayer());
+	layers.push_back(new FlattenLayer());
 	layers.push_back(new FullConnLayer(90, 32));
 	layers.push_back(new SigmoidLayer());
     layers.push_back(new FullConnLayer(32, 10));

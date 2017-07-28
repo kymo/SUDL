@@ -42,8 +42,10 @@ public:
         std::vector<matrix_double>().swap(_data);
 
         if (pre_layer->_type != RNN_CELL 
-            && pre_layer->_type != LSTM_CELL 
+            && pre_layer->_type != LSTM_CELL
+			&& pre_layer->_type != GRU_CELL
             && pre_layer->_type != BI_LSTM_CELL
+			&& pre_layer->_type != BI_GRU_CELL
             && pre_layer->_type != BI_RNN_CELL) { 
             FATAL_LOG("Layer before seq faull conn layer is not rnn cell! func[%s] line[%d]", __func__, __LINE__);
             exit(1);

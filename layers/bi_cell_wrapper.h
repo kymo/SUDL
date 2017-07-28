@@ -15,6 +15,7 @@
 #include "layer.h"
 #include "rnn_cell.h"
 #include "lstm_cell.h"
+#include "gru_cell.h"
 
 namespace sub_dl {
 
@@ -24,7 +25,9 @@ template <typename T>
 class BiCellWrapper : public Layer {
 
 public:
+	// positive sequence cell, from t = 1 to T
     T *_pos_seq_cell;
+	// negative sequence cell, from t = T to 1
     T *_neg_seq_cell;
     
     /*
@@ -73,6 +76,17 @@ public:
         _type = cell_type;
     }
 
+    ~BiCellWrapper() {
+        if (_pos_seq_cell != NULL) {
+            delete _pos_seq_cell;
+            _pos_seq_cell = NULL;
+        }
+        if (_neg_seq_cell != NULL) {
+            delete _neg_seq_cell;
+            _neg_seq_cell = NULL;
+        }
+    }
+
     /*
     * @brief forward process of bi-directional cell, if the pre layer of 
     *     of current cell if also bi-directional cell, just link the input
@@ -95,6 +109,10 @@ public:
             BiCellWrapper<LstmCell>* bi_lstm_cell = (BiCellWrapper<LstmCell>*) pre_layer;
             _pos_seq_cell->_forward(bi_lstm_cell->_pos_seq_cell);
             _neg_seq_cell->_forward(bi_lstm_cell->_neg_seq_cell);
+        } else if (pre_layer->_type == BI_GRU_CELL) {
+            BiCellWrapper<GruCell>* bi_gru_cell = (BiCellWrapper<GruCell>*) pre_layer;
+            _pos_seq_cell->_forward(bi_gru_cell->_pos_seq_cell);
+            _neg_seq_cell->_forward(bi_gru_cell->_neg_seq_cell);
         } else {
             _pos_seq_cell->_forward(pre_layer);
             // reverse the pre layer data
@@ -120,6 +138,10 @@ public:
             BiCellWrapper<LstmCell>* bi_lstm_cell = (BiCellWrapper<LstmCell>*) nxt_layer;
             _pos_seq_cell->_backward(bi_lstm_cell->_pos_seq_cell);
             _neg_seq_cell->_backward(bi_lstm_cell->_neg_seq_cell);
+        } else if (nxt_layer->_type == BI_GRU_CELL) {
+            BiCellWrapper<GruCell>* bi_gru_cell = (BiCellWrapper<GruCell>*) nxt_layer;
+            _pos_seq_cell->_backward(bi_gru_cell->_pos_seq_cell);
+            _neg_seq_cell->_backward(bi_gru_cell->_neg_seq_cell);
         } else {
             _pos_seq_cell->_backward(nxt_layer);
             // reverse the pre layer error

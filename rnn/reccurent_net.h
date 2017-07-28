@@ -17,6 +17,7 @@
 #include "seq_loss_layer.h"
 #include "rnn_cell.h"
 #include "lstm_cell.h"
+#include "gru_cell.h"
 #include "bi_cell_wrapper.h"
 #include "matrix.h"
 #include "embedding_layer.h"
@@ -144,7 +145,7 @@ public:
             } else if (_layers[l]->_type == RNN_CELL) {
                 std::cout << "------------Gradient Check for rnn cell layer -------------" << std::endl;
                 RnnCell* rnn_cell = (RnnCell*) _layers[l];
-                   gradient_weights_check(feature, label, rnn_cell->_input_hidden_weights, rnn_cell->_delta_input_hidden_weights); 
+                gradient_weights_check(feature, label, rnn_cell->_input_hidden_weights, rnn_cell->_delta_input_hidden_weights); 
             } else if (_layers[l]->_type == LSTM_CELL) {
                 std::cout << "------------Gradient Check for lstm cell layer -------------" << std::endl;
                 LstmCell* lstm_cell = (LstmCell*) _layers[l];
@@ -155,12 +156,29 @@ public:
                 gradient_weights_check(feature, label, lstm_cell->_ig_input_weights, lstm_cell->_ig_delta_input_weights);
                 gradient_weights_check(feature, label, lstm_cell->_og_input_weights, lstm_cell->_og_delta_input_weights);
                 gradient_weights_check(feature, label, lstm_cell->_fg_input_weights, lstm_cell->_fg_delta_input_weights);
+                gradient_weights_check(feature, label, lstm_cell->_cell_input_weights, lstm_cell->_cell_delta_input_weights);
             } else if (_layers[l]->_type == BI_RNN_CELL) {
                 std::cout << "------------Gradient Check for bi rnn cell layer -------------" << std::endl;
                 RnnCell* rnn_cell = ((BiCellWrapper<RnnCell>*) _layers[l])->_pos_seq_cell;
                 gradient_weights_check(feature, label, rnn_cell->_input_hidden_weights, rnn_cell->_delta_input_hidden_weights);
                 gradient_weights_check(feature, label, rnn_cell->_hidden_weights, rnn_cell->_delta_hidden_weights);
-            }
+            } else if (_layers[l]->_type == BI_GRU_CELL) {
+				std::cout << "------------Gradient Check for bi gru cell layer -------------" << std::endl;
+				GruCell* gru_cell = ((BiCellWrapper<GruCell>*) _layers[l])->_pos_seq_cell;
+                gradient_weights_check(feature, label, gru_cell->_ug_hidden_weights, gru_cell->_delta_ug_hidden_weights); 
+                gradient_weights_check(feature, label, gru_cell->_rg_hidden_weights, gru_cell->_delta_rg_hidden_weights); 
+                gradient_weights_check(feature, label, gru_cell->_newh_hidden_weights, gru_cell->_delta_newh_hidden_weights); 
+                gradient_weights_check(feature, label, gru_cell->_newh_input_weights, gru_cell->_delta_newh_input_weights); 
+
+			} else if (_layers[l]->_type == GRU_CELL) {
+                std::cout << "------------Gradient Check for gru cell layer -------------" << std::endl;
+                GruCell* gru_cell = (GruCell*) _layers[l];
+                gradient_weights_check(feature, label, gru_cell->_ug_hidden_weights, gru_cell->_delta_ug_hidden_weights); 
+                gradient_weights_check(feature, label, gru_cell->_rg_hidden_weights, gru_cell->_delta_rg_hidden_weights); 
+                gradient_weights_check(feature, label, gru_cell->_newh_hidden_weights, gru_cell->_delta_newh_hidden_weights); 
+                gradient_weights_check(feature, label, gru_cell->_newh_input_weights, gru_cell->_delta_newh_input_weights); 
+				
+			}
         }
 
     }

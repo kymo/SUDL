@@ -7,6 +7,7 @@ SOURCES=$(wildcard $(SRCPATH)/*.cpp)
 
 #OBJS := $(patsubst %.cpp, %.o,$(SOURCES))
 OBJS=$(SOURCES:.cpp=.o)
+ALIAS_O=$(wildcard ../layers/*.o)
 CFLAGS+=$(foreach dir, $(INCLUDEPATH), -I$(dir))
 
 all: build
@@ -17,4 +18,4 @@ clean:
 
 build:
 	g++ -c ${CFLAGS} ${SOURCES}
-	g++ ${CFLAGS} -o ${TARGET} ${OBJS}
+	g++ ${CFLAGS} -o ${TARGET} ${OBJS} ${ALIAS_O}

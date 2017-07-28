@@ -16,7 +16,6 @@
 #include <map>
 #include <vector>
 #include "matrix.h"
-#include "util.h"
 #include "active_func.h"
 #include "sub_log.h"
 
@@ -30,6 +29,7 @@ enum {
     LOSS,            // loss layer
     ACT,             // active layer(sigmoid,relu,tanh)
     FLAT,            // flatten layer
+    EMB,            // embedding layer
     SEQ_FULL,        // sequence full connected layer
     SEQ_SOFTMAX,     // sequence softmax layer
     SEQ_ACT,         // sequence active layer

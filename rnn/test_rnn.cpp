@@ -4,7 +4,6 @@
 #include <fstream>
 #include "util.h"
 #include "reccurent_net.h"
-#include "birnn_cell.h"
 
 #define SAMPLE_SEP ";"
 #define FEATURE_SEP " "
@@ -102,9 +101,13 @@ void test_rnn() {
 	// layers.push_back(new BiLstmCell(14, 16, false, true));	
 	// layers.push_back(new BiLstmCell(16, 16, false, true));	
 	//layers.push_back(new BiRnnCell<RnnCell>(14, 16, BI_RNN_CELL));
-	layers.push_back(new BiRnnCell<LstmCell>(14, 16, false, false, BI_LSTM_CELL));
-	layers.push_back(new BiRnnCell<RnnCell>(16, 16, BI_RNN_CELL));
-	layers.push_back(new SeqFullConnLayer(16, 4));
+	// layers.push_back(new BiCellWrapper<LstmCell>(14, 32, false, false, BI_LSTM_CELL));
+	// layers.push_back(new BiCellWrapper<RnnCell>(32, 32, BI_RNN_CELL));
+	// layers.push_back(new GruCell(14, 16));
+	// layers.push_back(new GruCell(16, 32));
+	layers.push_back(new BiCellWrapper<GruCell>(14, 16, BI_GRU_CELL));
+	layers.push_back(new BiCellWrapper<LstmCell>(16, 32, true, true, BI_LSTM_CELL));
+	layers.push_back(new SeqFullConnLayer(32, 4));
     layers.push_back(new SeqActiveLayer());
     ReccurentNet *rnet = new ReccurentNet(4);
     rnet->_build_rnn(layers);
@@ -112,12 +115,12 @@ void test_rnn() {
     // load_data(rnet, "train_text.1");
     std::vector<matrix_double> train_x_features;
     std::vector<matrix_double> train_y_labels;
-    // load_data("train_text.seg.10w", train_x_features, train_y_labels);
+    load_data("train_text.seg.10w", train_x_features, train_y_labels);
     // load_feature_data(train_x_features, train_y_labels);
-    load_data("train_text.1", train_x_features, train_y_labels);
-    int _max_epoch_cnt = 1;
-    int batch_size = 10;
-    int tot = 10000;
+    // load_data("train_text.1", train_x_features, train_y_labels);
+    int _max_epoch_cnt = 1000;
+    int batch_size = 50;
+    int tot = 500000;
     for (int epoch = 0; epoch < _max_epoch_cnt; epoch++) {
         for (int i = 0; i < tot / batch_size; i++) {
             double cost = 0.0;
@@ -139,7 +142,7 @@ void test_rnn() {
 				std::cout << batch_y_labels[0][0][i] << " ";
 			}
 			std::cout << std::endl;
-			std::cout << "Cost " << cost << " " << val1 << " " << val2 << std::endl;
+			DEBUG_LOG("Cost %lf %s %s", cost, val1.c_str(), val2.c_str());
         }
     }    
 }

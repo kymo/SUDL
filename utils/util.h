@@ -139,7 +139,6 @@ Matrix<T> log_m(const Matrix<T>& matrix) {
     return ret_val;
 }
 
-template <typename T>
 void split(const std::string& str, 
 		const std::string& delim,
 		std::vector<std::string>& ret) {
@@ -160,7 +159,6 @@ void split(const std::string& str,
 	}
 }
 
-template <typename T>
 void label_encode(const matrix_double& label_id_vec,
 		matrix_double& label, int label_dim) {
 	if (label_id_vec._x_dim == 0 || label_id_vec._y_dim == 0) {

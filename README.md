@@ -27,9 +27,8 @@ layers.push_back(new FullConnLayer(8, 32));  </br>
 layers.push_back(new SigmoidLayer());  </br>
 layers.push_back(new FullConnLayer(32, 3));   </br>
 layers.push_back(new SigmoidLayer());  </br>
-ANN\<MeanSquareLossLayer\> *ann = new ANN\<MeanSquareLossLayer\>();  </br>
-ann->build_ann(layers); </br>
-ann->load_data(argv[1]); </br>
+NetWrapper\<MeanSquareLossLayer\> *ann = new NetWrapper\<MeanSquareLossLayer\>();  </br>
+ann->_build_net(layers); </br>
 ann->train(); </br>
 
 2. CNN
@@ -47,9 +46,8 @@ layers.push_back(new FullConnLayer(90, 32)); </br>
 layers.push_back(new SigmoidLayer()); </br>
 layers.push_back(new FullConnLayer(32, 4)); </br>
 layers.push_back(new SigmoidLayer()); </br>
-CNN\<MeanSquareLossLayer\> *cnn = new CNN\<MeanSquareLossLayer\>(); </br>
-cnn->build_cnn(layers); </br>
-cnn->load_data(argv[1]); </br>
+NetWrapper\<MeanSquareLossLayer\> *cnn = new NetWrapper\<MeanSquareLossLayer\>(); </br>
+cnn->_build_net(layers); </br>
 cnn->train();
 
 3. RNN 
@@ -60,8 +58,8 @@ layers.push_back(new WordEmbeddingLayer(14)); </br>
 layers.push_back(new RnnCell(8, 16)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet *rnet = new ReccurentNet(4); </br>
-rnet->_build_rnn(layers);  </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
+rnet->_build_net(layers);  </br>
 
 3.2 multi layers
 > std::vector<Layer*> layers; </br>
@@ -70,7 +68,7 @@ layers.push_back(new RnnCell(8, 8)); </br>
 layers.push_back(new RnnCell(8, 16)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet *rnet = new ReccurentNet(4); </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
 rnet->_build_rnn(layers);  </br>
 
 > std::vector<Layer*> layers; </br>
@@ -79,8 +77,8 @@ layers.push_back(new LstmCell(8, 8)); </br>
 layers.push_back(new LstmCell(8, 16)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet *rnet = new ReccurentNet(4); </br>
-rnet->_build_rnn(layers);  </br>
+NetWrapper\<SeqLossLayer\> *rnet = new ReccurentNet\<SeqLossLayer\>(4); </br>
+rnet->_build_net(layers);  </br>
 
 
 3.3 different layers
@@ -90,8 +88,8 @@ layers.push_back(new RnnCell(8, 8)); </br>
 layers.push_back(new LstmCell(8, 16)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet *rnet = new ReccurentNet(4); </br>
-rnet->_build_rnn(layers);  </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
+rnet->_build_net(layers);  </br>
 
 3.4 singel bi-directional rnn cell
 >std::vector<Layer*> layers; </br>
@@ -99,8 +97,8 @@ layers.push_back(new WordEmbeddingLayer(14)); </br>
 layers.push_back(new BiCellWrapper\<RnnCell\>(14, 16, BI_RNN_CELL)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet *rnet = new ReccurentNet(4); </br>
-rnet->_build_rnn(layers);  </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
+rnet->_build_net(layers);  </br>
 
 3.5 multi bi-directional rnn cells
 >std::vector<Layer*> layers; </br>
@@ -109,6 +107,6 @@ layers.push_back(new BiCellWrapper\<RnnCell\>(14, 16, BI_RNN_CELL)); </br>
 layers.push_back(new BiCellWrapper\<LstmCell\>(14, 16, true, true, BI_LSTM_CELL)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet *rnet = new ReccurentNet(4); </br>
-rnet->_build_rnn(layers);  </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
+rnet->_build_net(layers);  </br>
 

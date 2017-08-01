@@ -35,7 +35,7 @@ void FullConnLayer::_backward(Layer* nxt_layer) {
     std::vector<matrix_double>().swap(_errors);
     matrix_double error;
     _errors = nxt_layer->_errors;
-    _delta_full_conn_weights = _pre_layer_data._T() * _errors[0];
-    _delta_full_conn_bias = _errors[0];
+    _delta_full_conn_weights.add(_pre_layer_data._T() * _errors[0]);
+    _delta_full_conn_bias.add(_errors[0]);
 }
 }

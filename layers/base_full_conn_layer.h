@@ -39,7 +39,12 @@ public:
         _type = FULL_CONN;
     }
 
-    void display() {
+   void _clear_gradient() {
+      _delta_full_conn_weights.resize(0.0);
+      _delta_full_conn_bias.resize(0.0);
+   }
+    
+   void display() {
         std::cout << "--------------full conn layer-----------" << std::endl;
         _data[0]._display("data");
         if (_errors.size() > 0) 

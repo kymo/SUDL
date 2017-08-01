@@ -101,7 +101,6 @@ public:
     */
     void _forward(const std::vector<matrix_double>& feature) {
         // const matrix_double& feature) {
-
         _data_layer->_set_data(feature);
         Layer* pre_layer = _data_layer;
         for (auto layer : _layers) {
@@ -122,9 +121,22 @@ public:
             layer->_update_gradient(SGD, -0.01);
         }
     }
+    /*
+    * @brief
+    *    clear data cache & errro cache
+    *
+    * @return
+    *    void
+    *
+    */
+    void _clear_gradient() {
+        for (auto layer : _layers) {
+            layer->_clear_gradient();
+        }
+    }
 
-    void _gradient_weights_check(const std::vector<matrix_double>& feature,
-        const matrix_double& label,
+    void _gradient_weights_check(const std::vector<std::vector<matrix_double> >& batch_x,
+        const std::vector<matrix_double>& batch_y,
         matrix_double& weights,
         const matrix_double& delta_weights) {
         for (int i = 0; i < weights._x_dim; i++) {
@@ -132,87 +144,101 @@ public:
                 
                 double v = weights[i][j];
                 weights[i][j] = v + 1.0e-4;
-                _forward(feature);
-
-                Layer* nxt_layer = new T(label);
-                nxt_layer->_forward(_layers.back());
-                nxt_layer->_backward(NULL);
                 double f1 = 0.0;
-                for (int k = 0; k < nxt_layer->_data.size(); k++) {
-                    f1 += nxt_layer->_data[k].sum();
+                double f2 = 0.0;
+                   T* nxt_layer;
+                for (int k = 0; k < batch_x.size(); k++) {    
+                    matrix_double label;
+                    label_encode(batch_y[k], label, _output_dim);
+                    _forward(batch_x[k]);
+                    nxt_layer = new T();
+                    nxt_layer->_set_label(label);
+                    nxt_layer->_forward(_layers.back());
+                    nxt_layer->_backward(NULL);
+                    for (int k = 0; k < nxt_layer->_data.size(); k++) {
+                        f1 += nxt_layer->_data[k].sum();
+                    }
+                    delete nxt_layer;
                 }
 
                 weights[i][j] = v - 1.0e-4;
-                _forward(feature);
-                nxt_layer = new T(label);
-                nxt_layer->_forward(_layers.back());
-                nxt_layer->_backward(NULL);
-                double f2 = 0.0;
-                for (int k = 0; k < nxt_layer->_data.size(); k++) {
-                    f2 += nxt_layer->_data[k].sum();
+                for (int k = 0; k < batch_x.size(); k++) {
+                   
+                    matrix_double label;
+                    label_encode(batch_y[k], label, _output_dim);
+                    _forward(batch_x[k]);
+                    nxt_layer = new T();
+                    nxt_layer->_set_label(label);
+                    nxt_layer->_forward(_layers.back());
+                    nxt_layer->_backward(NULL);
+                    for (int k = 0; k < nxt_layer->_data.size(); k++) {
+                        f2 += nxt_layer->_data[k].sum();
+                    }
+                    delete nxt_layer;
                 }
                 std::cout << "[ " << delta_weights[i][j] << "," << (f1 - f2) / (2.0e-4) << "]";
+                
                 weights[i][j] = v;
             }
         }
     }
     
-    void _gradient_check(const std::vector<matrix_double>& feature,
-        const matrix_double& label) {
+    double _gradient_check(const std::vector<std::vector<matrix_double> >& batch_x,
+        const std::vector<matrix_double>& batch_y) {
         
         for (int l = 0; l < _layers.size(); l++) {
             if (_layers[l]->_type == SEQ_FULL) {
                 std::cout << "------------Gradient Check for seq full layer -------------" << std::endl;
                 SeqFullConnLayer* seq_full = (SeqFullConnLayer*) _layers[l];
-                _gradient_weights_check(feature, label, 
+                _gradient_weights_check(batch_x, batch_y, 
                     seq_full->_seq_full_weights, seq_full->_delta_seq_full_weights);
-                _gradient_weights_check(feature, label, 
+                _gradient_weights_check(batch_x, batch_y, 
                     seq_full->_seq_full_bias, seq_full->_delta_seq_full_bias);
             } else if (_layers[l]->_type == RNN_CELL) {
                 std::cout << "------------Gradient Check for rnn cell layer -------------" << std::endl;
                 RnnCell* rnn_cell = (RnnCell*) _layers[l];
-                _gradient_weights_check(feature, label, 
+                _gradient_weights_check(batch_x, batch_y, 
                     rnn_cell->_input_hidden_weights, rnn_cell->_delta_input_hidden_weights); 
             } else if (_layers[l]->_type == LSTM_CELL) {
                 std::cout << "------------Gradient Check for lstm cell layer -------------" << std::endl;
                 LstmCell* lstm_cell = (LstmCell*) _layers[l];
-                _gradient_weights_check(feature, label, 
+                _gradient_weights_check(batch_x, batch_y, 
                     lstm_cell->_ig_input_weights, lstm_cell->_ig_delta_input_weights);
             } else if (_layers[l]->_type == BI_LSTM_CELL) {
                 std::cout << "------------Gradient Check for bi lstm cell layer -------------" << std::endl;
                 LstmCell* lstm_cell = ((BiCellWrapper<LstmCell>*) _layers[l])->_pos_seq_cell;
-                _gradient_weights_check(feature, label, 
+                _gradient_weights_check(batch_x, batch_y, 
                     lstm_cell->_ig_input_weights, lstm_cell->_ig_delta_input_weights);
-                _gradient_weights_check(feature, label, lstm_cell->_og_input_weights, lstm_cell->_og_delta_input_weights);
-                _gradient_weights_check(feature, label, lstm_cell->_fg_input_weights, lstm_cell->_fg_delta_input_weights);
-                _gradient_weights_check(feature, label, lstm_cell->_cell_input_weights, lstm_cell->_cell_delta_input_weights);
+                _gradient_weights_check(batch_x, batch_y, lstm_cell->_og_input_weights, lstm_cell->_og_delta_input_weights);
+                _gradient_weights_check(batch_x, batch_y, lstm_cell->_fg_input_weights, lstm_cell->_fg_delta_input_weights);
+                _gradient_weights_check(batch_x, batch_y, lstm_cell->_cell_input_weights, lstm_cell->_cell_delta_input_weights);
             } else if (_layers[l]->_type == BI_RNN_CELL) {
                 std::cout << "------------Gradient Check for bi rnn cell layer -------------" << std::endl;
                 RnnCell* rnn_cell = ((BiCellWrapper<RnnCell>*) _layers[l])->_pos_seq_cell;
-                _gradient_weights_check(feature, label, rnn_cell->_input_hidden_weights, rnn_cell->_delta_input_hidden_weights);
-                _gradient_weights_check(feature, label, rnn_cell->_hidden_weights, rnn_cell->_delta_hidden_weights);
+                _gradient_weights_check(batch_x, batch_y, rnn_cell->_input_hidden_weights, rnn_cell->_delta_input_hidden_weights);
+                _gradient_weights_check(batch_x, batch_y, rnn_cell->_hidden_weights, rnn_cell->_delta_hidden_weights);
             } else if (_layers[l]->_type == BI_GRU_CELL) {
                 std::cout << "------------Gradient Check for bi gru cell layer -------------" << std::endl;
                 GruCell* gru_cell = ((BiCellWrapper<GruCell>*) _layers[l])->_pos_seq_cell;
-                _gradient_weights_check(feature, label, gru_cell->_ug_hidden_weights, gru_cell->_delta_ug_hidden_weights); 
-                _gradient_weights_check(feature, label, gru_cell->_rg_hidden_weights, gru_cell->_delta_rg_hidden_weights); 
-                _gradient_weights_check(feature, label, gru_cell->_newh_hidden_weights, gru_cell->_delta_newh_hidden_weights); 
-                _gradient_weights_check(feature, label, gru_cell->_newh_input_weights, gru_cell->_delta_newh_input_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_ug_hidden_weights, gru_cell->_delta_ug_hidden_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_rg_hidden_weights, gru_cell->_delta_rg_hidden_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_newh_hidden_weights, gru_cell->_delta_newh_hidden_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_newh_input_weights, gru_cell->_delta_newh_input_weights); 
 
             } else if (_layers[l]->_type == GRU_CELL) {
                 std::cout << "------------Gradient Check for gru cell layer -------------" << std::endl;
                 GruCell* gru_cell = (GruCell*) _layers[l];
-                _gradient_weights_check(feature, label, gru_cell->_ug_hidden_weights, gru_cell->_delta_ug_hidden_weights); 
-                _gradient_weights_check(feature, label, gru_cell->_rg_hidden_weights, gru_cell->_delta_rg_hidden_weights); 
-                _gradient_weights_check(feature, label, gru_cell->_newh_hidden_weights, gru_cell->_delta_newh_hidden_weights); 
-                _gradient_weights_check(feature, label, gru_cell->_newh_input_weights, gru_cell->_delta_newh_input_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_ug_hidden_weights, gru_cell->_delta_ug_hidden_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_rg_hidden_weights, gru_cell->_delta_rg_hidden_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_newh_hidden_weights, gru_cell->_delta_newh_hidden_weights); 
+                _gradient_weights_check(batch_x, batch_y, gru_cell->_newh_input_weights, gru_cell->_delta_newh_input_weights); 
             } else if (_layers[l]->_type == CONV) {
                 ConvLayer* layer = (ConvLayer*) _layers[l];
                 std::cout << "-------Conv Layer Gradient Check Result ---------" << std::endl;
                 for (int i = 0; i < layer->_input_dim;i ++) {
                     for (int j = 0; j < layer->_output_dim; j++) {
                         if (layer->_conn_map[i][j]) {
-                            _gradient_weights_check(feature, label, 
+                            _gradient_weights_check(batch_x, batch_y, 
                                 layer->_conv_kernels[i][j], layer->_delta_conv_kernels[i][j]);
                          }
                     }
@@ -258,19 +284,21 @@ public:
         
         double cost = 0.0;
         std::string val1, val2;
+        _clear_gradient();
         for (int i = 0; i < batch_x.size(); i++) {
             matrix_double label;
             label_encode(batch_y[i], label, _output_dim);
             // forward
             _forward(batch_x[i]);
             cost += _backward(label);
-            // _gradient_check(batch_x[i], label);
-            _update_gradient();
         }
+        // _gradient_check(batch_x, batch_y);
+        _update_gradient();
         return cost;
     }
 
-    void _rnn_predict(const std::vector<matrix_double>& feature, std::vector<int>& labels) {
+    void _predict(const std::vector<matrix_double>& feature, std::vector<int>& labels) {
+        
         _forward(feature);
         const Layer* layer = _layers.back();
         for (int i = 0; i < layer->_data.size(); i++) {
@@ -282,12 +310,10 @@ public:
                     mx_id = j;
                 }
             }
-            std::cout << mx_id << " ";
             labels.push_back(mx_id);
         }
-        std::cout << std::endl;
-    }
 
+    }
 };
 
 }

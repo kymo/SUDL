@@ -22,11 +22,6 @@ public:
     int _pooling_y_dim;
     int _pooling_type; // 0 max_pooling 1 avg_pooling
     
-    matrix_double _pooling_weights;
-    matrix_double _pooling_bias;
-    matrix_double _delta_pooling_weights;
-    matrix_double _delta_pooling_bias;
-
     virtual ~ PoolingLayer() {}
     PoolingLayer(int pooling_type = 0) {
         _pooling_type = pooling_type;
@@ -43,6 +38,8 @@ public:
     void _backward(Layer* _nxt_layer);
 
     void _update_gradient(int opt_type, double learning_rate) {}
+    
+    void _clear_gradient() {}
 };
 
 }

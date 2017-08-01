@@ -130,8 +130,7 @@ public:
         _pre_layer = pre_layer;
     }
 
-    void _backward(Layer* nxt_layer) {
-        
+    void _backward(Layer* nxt_layer) { 
         if (nxt_layer->_type == BI_RNN_CELL) {
             BiCellWrapper<RnnCell>* bi_rnn_cell = (BiCellWrapper<RnnCell>*) nxt_layer;
             _pos_seq_cell->_backward(bi_rnn_cell->_pos_seq_cell);
@@ -162,6 +161,11 @@ public:
             _neg_seq_cell->_update_gradient(opt_type, learning_rate);
         }
     }
+
+   void _clear_gradient() {
+      _pos_seq_cell->_clear_gradient();
+      _neg_seq_cell->_clear_gradient();
+   }
 };
 
 }

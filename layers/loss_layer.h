@@ -27,13 +27,15 @@ public:
     ~LossLayer() {
     }
 
-	void _set_label(const matrix_double& label) {
-		_label = label;
-	}
+    void _set_label(const matrix_double& label) {
+        _label = label;
+    }
 
     void _update_gradient(int opt_type, double learning_rate) {}
 
     void display() {}
+    
+    void _clear_gradient() {}
 };
 
 // mean square loss layer
@@ -43,7 +45,7 @@ public:
 
     MeanSquareLossLayer() : LossLayer() {
 
-	}
+    }
 
     void _forward(Layer* pre_layer) {
         std::vector<matrix_double>().swap(_data);

@@ -24,12 +24,6 @@ PoolingLayer::PoolingLayer(int input_dim, int output_dim,
     _pooling_y_dim = pooling_y_dim;
     _feature_x_dim = feature_x_dim;
     _feature_y_dim = feature_y_dim;
-    _pooling_weights.resize(1, output_dim);
-    _pooling_weights.assign_val();
-    _pooling_bias.resize(1, output_dim);
-    _pooling_bias.assign_val();
-    _delta_pooling_weights.resize(1, output_dim);
-    _delta_pooling_bias.resize(1, output_dim);
     _type = POOL;
 
 }

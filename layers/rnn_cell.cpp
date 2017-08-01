@@ -29,6 +29,10 @@ RnnCell::RnnCell(int input_dim, int output_dim) {
     _input_hidden_weights.assign_val();
     _hidden_weights.assign_val();
     _hidden_bias.assign_val();
+    
+    _delta_input_hidden_weights.resize(_input_dim, _output_dim);
+    _delta_hidden_weights.resize(_output_dim, _output_dim);
+    _delta_hidden_bias.resize(1, _output_dim);
 
 }
 
@@ -57,10 +61,6 @@ void RnnCell::_backward(Layer* nxt_layer) {
     }
     std::vector<matrix_double>().swap(_errors);
     matrix_double nxt_hidden_error(1, _output_dim);
-    
-    _delta_input_hidden_weights.resize(_input_dim, _output_dim);
-    _delta_hidden_weights.resize(_output_dim, _output_dim);
-    _delta_hidden_bias.resize(1, _output_dim);
     matrix_double pre_layer_weights;
     if (nxt_layer->_type == SEQ_FULL) {
         SeqFullConnLayer* seq_full_layer = (SeqFullConnLayer*) nxt_layer;

@@ -120,6 +120,26 @@ public:
 
     void _update_gradient(int opt_type, double learning_rate);
 
+    void _clear_gradient() {
+        _ig_delta_input_weights.resize(0.0);
+        _ig_delta_hidden_weights.resize(0.0);
+        _ig_delta_cell_weights.resize(0.0);
+        _ig_delta_bias.resize(0.0);
+        
+        _fg_delta_input_weights.resize(0.0);
+        _fg_delta_hidden_weights.resize(0.0);
+        _fg_delta_cell_weights.resize(0.0);
+        _fg_delta_bias.resize(0.0);
+        
+        _og_delta_input_weights.resize(0.0);
+        _og_delta_hidden_weights.resize(0.0);
+        _og_delta_cell_weights.resize(0.0);
+        _og_delta_bias.resize(0.0);
+        
+        _cell_delta_input_weights.resize(0.0);
+        _cell_delta_hidden_weights.resize(0.0);
+        _cell_delta_bias.resize(0.0);
+    }
 };
 
 }

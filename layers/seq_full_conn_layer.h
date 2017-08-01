@@ -35,6 +35,9 @@ public:
 
         _seq_full_weights.assign_val();
         _seq_full_bias.assign_val();
+        
+        _delta_seq_full_weights.resize(_input_dim, _output_dim);
+        _delta_seq_full_bias.resize(1, _output_dim);
 
     }
 
@@ -68,8 +71,6 @@ public:
             exit(1);
         }
         std::vector<matrix_double>().swap(_errors);
-        _delta_seq_full_weights.resize(_input_dim, _output_dim);
-        _delta_seq_full_bias.resize(1, _output_dim);
         _errors = nxt_layer->_errors;
         for (int i = _seq_len - 1; i >= 0; i--) {
             _delta_seq_full_weights.add(_pre_layer->_data[i]._T() * _errors[i]);
@@ -87,7 +88,10 @@ public:
         }
     }
 
-
+    void _clear_gradient() {
+        _delta_seq_full_weights.resize(0.0);
+        _delta_seq_full_bias.resize(0.0);
+    }
 };
 
 }

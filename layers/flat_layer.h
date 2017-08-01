@@ -94,7 +94,8 @@ public:
     
     /* no weight to be updated */
     void _update_gradient(int opt_type, double learning_rate) {}
-
+    
+    void _clear_gradient() {}
 
 };
 }

@@ -58,7 +58,7 @@ void ConvLayer::_forward(Layer* pre_layer) {
         matrix_double feature_map(_feature_x_dim, _feature_y_dim);
         for (int j = 0; j < _input_dim; j++) {
             if (_conn_map[j][i]) {
-                feature_map = feature_map + pre_layer->_data[j].conv(_conv_kernels[j][i]);
+                feature_map.add(pre_layer->_data[j].conv(_conv_kernels[j][i]));
             }
         }
         _data.push_back(feature_map + _conv_bias[0][i]);
@@ -71,33 +71,29 @@ void ConvLayer::_backward(Layer* nxt_layer) {
         exit(1);
     }
     std::vector<matrix_double>().swap(_errors);
-    if (nxt_layer->_type == POOL) {
-        const PoolingLayer* pooling_layer = (PoolingLayer*)(nxt_layer);
-        int delta_size = (pooling_layer->_pooling_x_dim) * pooling_layer->_pooling_y_dim;
-        for (int i = 0; i < _output_dim; i++) {
-            matrix_double up_delta = pooling_layer->_errors[i]
-                .up_sample(pooling_layer->_pooling_x_dim, 
-                pooling_layer->_pooling_y_dim);
-            matrix_double error = up_delta.dot_mul(sigmoid_m_diff(_data[i]))
-                * (pooling_layer->_pooling_weights[0][i] / delta_size);
-            _errors.push_back(error);
-        }
-    } else if (nxt_layer->_type == ACT) {
-        _errors = nxt_layer->_errors;    
-    }
+    _errors = nxt_layer->_errors;    
 
     for (int i = 0; i < _output_dim; i++) {
         // update kernel weights
         for (int j = 0; j < _input_dim; j++) {
             if (_conn_map[j][i]) {
-                _delta_conv_kernels[j][i] = (_pre_layer->_data[j]
+                _delta_conv_kernels[j][i].add((_pre_layer->_data[j]
                     .conv(_errors[i].rotate_180()))
-                    .rotate_180();
+                    .rotate_180());
             }
         }
         // update kernel bias
-        _delta_conv_bias[0][i] = _errors[i].sum();
+        _delta_conv_bias[0][i] += _errors[i].sum();
     }
+}
+
+void ConvLayer::_clear_gradient() {
+    for (int i = 0; i < _input_dim * _output_dim; i++) {
+           if (_conn_map[i / _output_dim][i % _output_dim]) {
+            _delta_conv_kernels[i / _output_dim][i % _output_dim].resize(0.0);
+        }
+    }
+    _delta_conv_bias.resize(0.0);
 }
 
 void ConvLayer::_update_gradient(int opt_type, double learning_rate) {

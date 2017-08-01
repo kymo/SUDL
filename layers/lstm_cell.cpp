@@ -62,11 +62,30 @@ LstmCell::LstmCell(int input_dim, int output_dim, bool use_peephole) {
         _og_cell_weights.resize(_output_dim, _output_dim);
         _ig_cell_weights.resize(_output_dim, _output_dim);
     }
+    
+    _ig_delta_input_weights.resize(_input_dim, _output_dim);
+    _ig_delta_hidden_weights.resize(_output_dim, _output_dim);
+    _ig_delta_cell_weights.resize(_output_dim, _output_dim);
+    _ig_delta_bias.resize(1, _output_dim);
+    
+    _fg_delta_input_weights.resize(_input_dim, _output_dim);
+    _fg_delta_hidden_weights.resize(_output_dim, _output_dim);
+    _fg_delta_cell_weights.resize(_output_dim, _output_dim);
+    _fg_delta_bias.resize(1, _output_dim);
+    
+    _og_delta_input_weights.resize(_input_dim, _output_dim);
+    _og_delta_hidden_weights.resize(_output_dim, _output_dim);
+    _og_delta_cell_weights.resize(_output_dim, _output_dim);
+    _og_delta_bias.resize(1, _output_dim);
+    
+    _cell_delta_input_weights.resize(_input_dim, _output_dim);
+    _cell_delta_hidden_weights.resize(_output_dim, _output_dim);
+    _cell_delta_bias.resize(1, _output_dim);
 
 }
 
 void LstmCell::_forward(Layer* pre_layer) {
-    std::vector<matrix_double>().swap(_data);
+       std::vector<matrix_double>().swap(_data);
     _seq_len = pre_layer->_data.size();
     matrix_double pre_hidden_vals(1, _output_dim);
     matrix_double pre_cell_vals(1, _output_dim);
@@ -132,29 +151,11 @@ void LstmCell::_backward(Layer* nxt_layer) {
         FATAL_LOG("Layer before lstm is illegal! func[%s] line[%d]", __func__, __LINE__);
         exit(1);
     }
+    
     std::vector<matrix_double>().swap(_fg_errors);
     std::vector<matrix_double>().swap(_ig_errors);
     std::vector<matrix_double>().swap(_og_errors);
     std::vector<matrix_double>().swap(_new_cell_errors);
-    
-    _ig_delta_input_weights.resize(_input_dim, _output_dim);
-    _ig_delta_hidden_weights.resize(_output_dim, _output_dim);
-    _ig_delta_cell_weights.resize(_output_dim, _output_dim);
-    _ig_delta_bias.resize(1, _output_dim);
-    
-    _fg_delta_input_weights.resize(_input_dim, _output_dim);
-    _fg_delta_hidden_weights.resize(_output_dim, _output_dim);
-    _fg_delta_cell_weights.resize(_output_dim, _output_dim);
-    _fg_delta_bias.resize(1, _output_dim);
-    
-    _og_delta_input_weights.resize(_input_dim, _output_dim);
-    _og_delta_hidden_weights.resize(_output_dim, _output_dim);
-    _og_delta_cell_weights.resize(_output_dim, _output_dim);
-    _og_delta_bias.resize(1, _output_dim);
-    
-    _cell_delta_input_weights.resize(_input_dim, _output_dim);
-    _cell_delta_hidden_weights.resize(_output_dim, _output_dim);
-    _cell_delta_bias.resize(1, _output_dim);
 
     matrix_double fg_error(1, _output_dim);
     matrix_double ig_error(1, _output_dim);

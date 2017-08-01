@@ -49,7 +49,7 @@ public:
     void _backward(Layer* nxt_layer) {}
     void display() {}
     void _update_gradient(int opt_type, double learning_rate) {}
-
+    void _clear_gradient() {}
 };
 
 }

@@ -127,6 +127,7 @@ public:
 
     void display() {}
 
+    void _clear_gradient() {}
 };
 
 class SigmoidLayer : public ActiveLayer {

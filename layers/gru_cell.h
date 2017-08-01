@@ -35,7 +35,7 @@ public:
     matrix_double _rg_hidden_weights;
     matrix_double _rg_bias;
    
-       matrix_double _delta_rg_input_weights;
+    matrix_double _delta_rg_input_weights;
     matrix_double _delta_rg_hidden_weights;
     matrix_double _delta_rg_bias;
 
@@ -83,6 +83,17 @@ public:
 
     void _update_gradient(int opt_type, double learning_rate);
 
+    void _clear_gradient() {
+        _delta_ug_input_weights.resize(0.0);
+        _delta_ug_hidden_weights.resize(0.0);
+        _delta_ug_bias.resize(0.0);
+        _delta_rg_input_weights.resize(0.0);
+        _delta_rg_hidden_weights.resize(0.0);
+        _delta_rg_bias.resize(0.0);
+        _delta_newh_input_weights.resize(0.0);
+        _delta_newh_hidden_weights.resize(0.0);
+        _delta_newh_bias.resize(0.0);
+    }
 };
 
 }

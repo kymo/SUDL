@@ -67,6 +67,8 @@ public:
     // update weights
     void _update_gradient(int opt_type, double learning_rate);
 
+    // clear weights
+    void _clear_gradient();
 };
 
 }

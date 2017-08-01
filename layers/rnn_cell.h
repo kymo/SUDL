@@ -60,6 +60,11 @@ public:
 
     void _update_gradient(int opt_type, double learning_rate);
 
+    void _clear_gradient() {
+        _delta_input_hidden_weights.resize(0.0);
+        _delta_hidden_weights.resize(0.0);
+        _delta_hidden_bias.resize(0.0);
+    }
 };
 
 }

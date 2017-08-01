@@ -79,20 +79,19 @@ void digital_recognition(int argc, char*argv[]) {
                 batch_y_labels.push_back(train_y_labels[j]);
             }
             cost = cnet->_train(batch_x_features, batch_y_labels);
-            // std::vector<int> labels;
-            /*
-            rnet->_rnn_predict(batch_x_features[0], labels);
-            for (int i = 0; i < labels.size(); i++) {
-                std::cout << labels[i] << " ";
-            }
-            std::cout << std::endl;
-            for (int i = 0; i < batch_y_labels[0]._y_dim; i++) {
-                std::cout << batch_y_labels[0][0][i] << " ";
-            }
-            std::cout << std::endl;
-            */
-            DEBUG_LOG("Cost %lf %s %s", cost, val1.c_str(), val2.c_str());
-        }
+			int right = 0;
+			std::vector<int> labels;
+			for (int j = 0; j < batch_x_features.size(); j++) {
+				std::vector<int>().swap(labels);
+				cnet->_predict(batch_x_features[j], labels);
+				if (batch_y_labels[j][0][0] == labels[0]) {
+					right += 1;
+				}
+			}
+			std::cout << batch_y_labels[0][0][0] << " " << labels[0] << std::endl;
+			std::cout << "Cost " << cost << ", Tot " << batch_x_features.size() << ", Right " << 
+				right << " , Ratio " << right * 1.0 / batch_x_features.size() << std::endl;
+		}
     }    
 }
 

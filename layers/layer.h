@@ -84,7 +84,7 @@ public:
     virtual void _backward(Layer* nxt_layer) = 0;
     virtual void _update_gradient(int opt_type, double learning_rate) = 0;
     virtual void display() = 0;
-
+    virtual void _clear_gradient() = 0;
 };
 
 class DataFeedLayer: public Layer {
@@ -97,16 +97,16 @@ public:
     ~DataFeedLayer() {
     }
 
-	void _set_data(const std::vector<matrix_double>& data) {
-		_data = data;
-	}
+    void _set_data(const std::vector<matrix_double>& data) {
+        _data = data;
+    }
 
     void _forward(Layer* pre_layer) {}
     void _backward(Layer* nxt_laery) {}
 
     void _update_gradient(int opt_type, double learning_rate) {}
-    void display() {
-    }
+    void display() {}
+    void _clear_gradient() {}
 };
 
 

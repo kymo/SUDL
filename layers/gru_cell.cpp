@@ -46,7 +46,17 @@ GruCell::GruCell(int input_dim, int output_dim) {
     _newh_input_weights.assign_val();
     _newh_hidden_weights.assign_val();
     _newh_bias.assign_val();
-
+    
+    _delta_ug_input_weights.resize(_input_dim, _output_dim);
+    _delta_ug_hidden_weights.resize(_output_dim, _output_dim);
+    _delta_ug_bias.resize(1, _output_dim);
+    _delta_rg_input_weights.resize(_input_dim, _output_dim);
+    _delta_rg_hidden_weights.resize(_output_dim, _output_dim);
+    _delta_rg_bias.resize(1, _output_dim);
+    _delta_newh_input_weights.resize(_input_dim, _output_dim);
+    _delta_newh_hidden_weights.resize(_output_dim, _output_dim);
+    _delta_newh_bias.resize(1, _output_dim);
+    
 }
 
 void GruCell::_forward(Layer* pre_layer) {
@@ -92,16 +102,6 @@ void GruCell::_backward(Layer* nxt_layer) {
         exit(1);
     }
 
-    _delta_ug_input_weights.resize(_input_dim, _output_dim);
-    _delta_ug_hidden_weights.resize(_output_dim, _output_dim);
-    _delta_ug_bias.resize(1, _output_dim);
-    _delta_rg_input_weights.resize(_input_dim, _output_dim);
-    _delta_rg_hidden_weights.resize(_output_dim, _output_dim);
-    _delta_rg_bias.resize(1, _output_dim);
-    _delta_newh_input_weights.resize(_input_dim, _output_dim);
-    _delta_newh_hidden_weights.resize(_output_dim, _output_dim);
-    _delta_newh_bias.resize(1, _output_dim);
-    
     matrix_double nxt_hidden_error(1, _output_dim);
     matrix_double nxt_newh_error(1, _output_dim);
     matrix_double nxt_ug_error(1, _output_dim);

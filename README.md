@@ -68,7 +68,7 @@ layers.push_back(new RnnCell(8, 8)); </br>
 layers.push_back(new RnnCell(8, 16)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper<SeqLossLayer> *rnet = new NetWrapper<SeqLossLayer>(4); </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
 rnet->_build_rnn(layers);  </br>
 
 > std::vector<Layer*> layers; </br>
@@ -77,7 +77,7 @@ layers.push_back(new LstmCell(8, 8)); </br>
 layers.push_back(new LstmCell(8, 16)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper<SeqLossLayer> *rnet = new ReccurentNet<SeqLossLayer>(4); </br>
+NetWrapper\<SeqLossLayer\> *rnet = new ReccurentNet\<SeqLossLayer\>(4); </br>
 rnet->_build_net(layers);  </br>
 
 
@@ -88,7 +88,7 @@ layers.push_back(new RnnCell(8, 8)); </br>
 layers.push_back(new LstmCell(8, 16)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet\<SeqLossLayer\> *rnet = new ReccurentNet\<SeqLossLayer\>(4); </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
 rnet->_build_net(layers);  </br>
 
 3.4 singel bi-directional rnn cell
@@ -97,7 +97,7 @@ layers.push_back(new WordEmbeddingLayer(14)); </br>
 layers.push_back(new BiCellWrapper\<RnnCell\>(14, 16, BI_RNN_CELL)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet\<SeqLossLayer\> *rnet = new ReccurentNet\<SeqLossLayer\>(4); </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
 rnet->_build_net(layers);  </br>
 
 3.5 multi bi-directional rnn cells
@@ -107,6 +107,6 @@ layers.push_back(new BiCellWrapper\<RnnCell\>(14, 16, BI_RNN_CELL)); </br>
 layers.push_back(new BiCellWrapper\<LstmCell\>(14, 16, true, true, BI_LSTM_CELL)); </br>
 layers.push_back(new SeqFullConnLayer(16, 4)); </br>
 layers.push_back(new SeqActiveLayer()); </br>
-ReccurentNet\<SeqLossLayer\> *rnet = new ReccurentNet\<SeqLossLayer\>(4); </br>
+NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
 rnet->_build_net(layers);  </br>
 

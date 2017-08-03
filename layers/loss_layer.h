@@ -72,18 +72,12 @@ public:
     void _forward(Layer* pre_layer) {
         std::vector<matrix_double>().swap(_data);
         _pre_layer = pre_layer;
-        if (pre_layer->_type != FULL_CONN) {
-            FATAL_LOG("Error pre layer for mean square loss layer, func[%s] line[%d]", __func__, __LINE__);
-            exit(1);
-        }
-
-        _data.push_back(_label.dot_mul(log_m(pre_layer->_data[0])) 
-            + _label.minus_by(1).dot_mul(log_m(pre_layer->_data[0].minus_by(1))));
-
+        _data.push_back(_label.dot_mul(log_m(pre_layer->_data[0])) * (-1));
     }
 
     void _backward(Layer* nxt_layer) {
-
+        std::vector<matrix_double>().swap(_errors);
+        _errors.push_back(_label * -1);
     }
 };
 

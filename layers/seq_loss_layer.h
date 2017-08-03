@@ -55,12 +55,12 @@ public:
     void _clear_gradient() {}
 };
 
-class SeqLossLayer : public Layer {
+class SeqMeanSquareLossLayer : public Layer {
 
 public:
     matrix_double _label;
 
-    SeqLossLayer() {
+    SeqMeanSquareLossLayer() {
         _type = SEQ_LOSS;
     }
     
@@ -90,6 +90,48 @@ public:
         }
         std::reverse(_errors.begin(), _errors.end());
 
+    }
+
+    void display() {}
+
+    void _update_gradient(int opt_type, double learning_rate) {
+    }
+
+    void _clear_gradient() {}
+};
+
+class SeqCrossEntropyLossLayer : public Layer {
+
+public:
+    matrix_double _label;
+
+    SeqCrossEntropyLossLayer() {
+        _type = SEQ_LOSS;
+    }
+    
+    void _set_label(const matrix_double& label) {
+        _label = label;
+    }
+
+    void _forward(Layer* pre_layer) {        
+        std::vector<matrix_double>().swap(_data);
+        _seq_len = pre_layer->_seq_len;
+        _output_dim = pre_layer->_output_dim;
+        _input_dim = pre_layer->_input_dim;
+            
+        for (int t = 0; t < _seq_len; t++) {
+             _data.push_back(_label._R(t).dot_mul(log_m(pre_layer->_data[t])) * (-1));
+          }
+        _pre_layer = pre_layer;
+    
+    }
+
+    void _backward(Layer* nxt_layer) {
+        std::vector<matrix_double>().swap(_errors);
+        for (int t = _seq_len - 1; t >= 0; t--) {
+            _errors.push_back(_label._R(t) * -1);
+        }
+        std::reverse(_errors.begin(), _errors.end());
     }
 
     void display() {}

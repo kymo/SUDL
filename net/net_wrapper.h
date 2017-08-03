@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include "seq_full_conn_layer.h"
+#include "seq_full_conn_softmax_layer.h"
 #include "seq_loss_layer.h"
 #include "rnn_cell.h"
 #include "lstm_cell.h"
@@ -24,6 +25,7 @@
 #include "conv_layer.h"
 #include "pooling_layer.h"
 #include "full_conn_layer.h"
+#include "full_conn_softmax_layer.h"
 #include "active_layer.h"
 #include "loss_layer.h"
 #include "util.h"
@@ -118,7 +120,7 @@ public:
     */
     void _update_gradient() {
         for (auto layer : _layers) {
-            layer->_update_gradient(SGD, -0.01);
+            layer->_update_gradient(SGD, -0.001);
         }
     }
     /*
@@ -243,6 +245,11 @@ public:
                          }
                     }
                 }
+            } else if (_layers[l]->_type == FULL_CONN) {
+                BaseFullConnLayer* layer = (BaseFullConnLayer*) _layers[l];
+                std::cout << "-------Full Layer Gradient Check Result ---------" << std::endl;
+                _gradient_weights_check(batch_x, batch_y, layer->_full_conn_weights, layer->_delta_full_conn_weights);
+
             }
         }
     }

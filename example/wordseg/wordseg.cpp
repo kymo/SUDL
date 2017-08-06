@@ -56,7 +56,7 @@ void test_rnn() {
     layers.push_back(new BiCellWrapper<LstmCell>(16, 32, true, true, BI_LSTM_CELL));
     layers.push_back(new SeqFullConnLayer(32, 4));
     layers.push_back(new SeqActiveLayer());
-    NetWrapper<SeqLossLayer>*rnet = new NetWrapper<SeqLossLayer>(4);
+    NetWrapper<SeqCrossEntropyLossLayer>*rnet = new NetWrapper<SeqCrossEntropyLossLayer>(4);
     rnet->_build_net(layers);
     std::vector<std::vector<matrix_double> > train_x_features;
     std::vector<matrix_double> train_y_labels;

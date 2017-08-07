@@ -54,16 +54,20 @@ void test_rnn() {
     layers.push_back(new BiCellWrapper<RnnCell>(14, 16, BI_RNN_CELL));
     layers.push_back(new BiCellWrapper<GruCell>(16, 16, BI_GRU_CELL));
     layers.push_back(new BiCellWrapper<LstmCell>(16, 32, true, true, BI_LSTM_CELL));
-    layers.push_back(new SeqFullConnLayer(32, 4));
-    layers.push_back(new SeqActiveLayer());
-    NetWrapper<SeqLossLayer>*rnet = new NetWrapper<SeqLossLayer>(4);
+    // layers.push_back(new SeqFullConnLayer(32, 4));
+    // layers.push_back(new SeqActiveLayer());
+	// NetWrapper<SeqLossLayer>*rnet = new NetWrapper<SeqLossLayer>(4);
+    layers.push_back(new SeqFullConnSoftmaxLayer(32, 4));
+	NetWrapper<SeqCrossEntropyLossLayer>*rnet = new NetWrapper<SeqCrossEntropyLossLayer>(4);
     rnet->_build_net(layers);
+
     std::vector<std::vector<matrix_double> > train_x_features;
     std::vector<matrix_double> train_y_labels;
-    load_data("train_text.seg.10w", train_x_features, train_y_labels);
+    load_data("train_text.seg.50w", train_x_features, train_y_labels);
+	std::cout << "done" << std::endl;
     int _max_epoch_cnt = 1000;
     int batch_size = 50;
-    int tot = 10000;
+    int tot = 500000;
     for (int epoch = 0; epoch < _max_epoch_cnt; epoch++) {
         for (int i = 0; i < tot / batch_size; i++) {
             double cost = 0.0;

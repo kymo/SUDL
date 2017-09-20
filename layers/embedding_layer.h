@@ -13,6 +13,99 @@
 
 namespace sub_dl {
 
+class SeqEmbeddingLayer : public Layer {
+
+public:
+    matrix_double _embedding_vec;
+    matrix_double _delta_embedding_vec;
+    int _voca_size;
+    float _learning_rate;
+
+public:
+    SeqEmbeddingLayer(int voca_size, int output_dim) {
+        
+        _type = EMB;
+        _voca_size = voca_size;
+        _output_dim = output_dim;
+        _embedding_vec.resize(voca_size, output_dim);
+        _embedding_vec.assign_val();
+        _delta_embedding_vec.resize(voca_size, output_dim);
+    }
+
+    ~SeqEmbeddingLayer() {
+    }
+
+    void _set_learning_rate(float learning_rate) {
+        _learning_rate = learning_rate;
+    }
+
+    void _forward(Layer* pre_layer) {
+        std::vector<matrix_double>().swap(_data);
+        if (pre_layer->_type != INPUT) {
+            exit(1);
+        }
+        _seq_len = pre_layer->_data.size();
+        for (int i = 0; i < _seq_len; i++) {
+            int word_id = pre_layer->_data[i][0][0];
+            if (word_id > _embedding_vec._x_dim) {
+                exit(1);
+            }
+            // matrix_double feature(1, _output_dim);
+            _data.push_back(_embedding_vec._R(word_id - 1));
+        }
+        _pre_layer = pre_layer;
+    }
+
+    void _backward(Layer* nxt_layer) {
+
+        if (nxt_layer->_type != RNN_CELL &&
+            nxt_layer->_type != LSTM_CELL &&
+            nxt_layer->_type != GRU_CELL) {
+            exit(1);
+        }
+        std::vector<matrix_double> nxt_layer_error_weights; 
+        if (nxt_layer->_type == RNN_CELL) {
+            RnnCell* rnn_cell = (RnnCell*) nxt_layer;
+            for (int t = 0; t < _seq_len; t++) {
+                nxt_layer_error_weights.push_back(rnn_cell->_errors[t] * rnn_cell->_input_hidden_weights._T());
+            }
+        } else if (nxt_layer->_type == GRU_CELL) {
+            GruCell* gru_cell = (GruCell*) nxt_layer;
+            for (int t = 0; t < _seq_len; t++) {
+                nxt_layer_error_weights.push_back(gru_cell->_ug_errors[t] * gru_cell->_ug_input_weights._T()
+                + gru_cell->_rg_errors[t] * gru_cell->_rg_input_weights._T()
+                + gru_cell->_newh_errors[t]  * gru_cell->_newh_input_weights._T());
+            }
+        }
+
+        int wid = 0;
+        for (int t = _seq_len - 1; t >= 0; t--) {
+            int word_id = _pre_layer->_data[t][0][0];
+            matrix_double old_embedding = _delta_embedding_vec._R(word_id - 1);
+            old_embedding.add(nxt_layer_error_weights[t]);
+            _delta_embedding_vec.set_row(word_id - 1, old_embedding);
+        }
+    }
+
+    void _clear_gradient() {
+        std::cout << "clear graident!" << std::endl;
+        _delta_embedding_vec.resize(0.0);
+    }
+    
+    void display() {
+    }
+
+    
+    void _update_gradient(int opt_type, double learning_rate) {
+        for (int t = _seq_len - 1; t >= 0; t--) {
+            int word_id = _pre_layer->_data[t][0][0];
+            matrix_double old_embedding = _embedding_vec._R(word_id - 1);
+            old_embedding.add(_delta_embedding_vec._R(word_id - 1) * _learning_rate);
+            _embedding_vec.set_row(word_id - 1, old_embedding);
+        }
+    }
+};
+
 class WordEmbeddingLayer : public Layer {
 
 public:

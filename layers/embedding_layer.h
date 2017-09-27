@@ -76,7 +76,15 @@ public:
                 + gru_cell->_rg_errors[t] * gru_cell->_rg_input_weights._T()
                 + gru_cell->_newh_errors[t]  * gru_cell->_newh_input_weights._T());
             }
-        }
+        } else if (nxt_layer->_type == LSTM_CELL) {
+			LstmCell* lstm_cell = (LstmCell*) nxt_layer;
+			for (int i = 0; i < _seq_len; i++) {
+				nxt_layer_error_weights.push_back(lstm_cell->_fg_errors[i] * lstm_cell->_fg_input_weights._T()
+					+ lstm_cell->_ig_errors[i] * lstm_cell->_ig_input_weights._T()
+					+ lstm_cell->_og_errors[i] * lstm_cell->_og_input_weights._T()
+					+ lstm_cell->_new_cell_errors[i] * lstm_cell->_cell_input_weights._T());
+			}
+		}
 
         int wid = 0;
         for (int t = _seq_len - 1; t >= 0; t--) {

@@ -299,7 +299,7 @@ public:
             _forward(batch_x[i]);
             cost += _backward(label);
         }
-        // _gradient_check(batch_x, batch_y);
+        _gradient_check(batch_x, batch_y);
         _update_gradient();
         return cost;
     }

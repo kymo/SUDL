@@ -34,6 +34,8 @@ void FullConnLayer::_backward(Layer* nxt_layer) {
     }
     std::vector<matrix_double>().swap(_errors);
     matrix_double error;
+	// the layers after full connection layer are always sigmoid layer or relulayer
+	// so the error of full-conn is equal to that of last layer as E(full) = partial{E}{net_{full}}
     _errors = nxt_layer->_errors;
     _delta_full_conn_weights.add(_pre_layer_data._T() * _errors[0]);
     _delta_full_conn_bias.add(_errors[0]);

@@ -77,8 +77,12 @@ public:
 
     void _backward(Layer* nxt_layer) {
         std::vector<matrix_double>().swap(_errors);
-        _errors.push_back(_label * -1);
-    }
+		matrix_double error(1, _label._y_dim);
+		for (int i = 0; i < _label._y_dim; i++) {
+			error[0][i] = - _label[0][i] * 1.0 / (_pre_layer->_data[0][0][i]);
+		}
+		_errors.push_back(error);
+	}
 };
 
 }

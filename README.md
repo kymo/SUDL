@@ -20,6 +20,7 @@ A light deep learning tools box by c++
 2. network architecture configurable 
 
 **Compile**
+
 sh build.sh
 
 **Usage**

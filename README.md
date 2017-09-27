@@ -19,7 +19,12 @@ A light deep learning tools box by c++
 1. GPU supported
 2. network architecture configurable 
 
+**Compile**
+
+sh build.sh
+
 **Usage**
+
 1. ANN
 > layers.push_back(new FullConnLayer(4, 8));  </br>
 layers.push_back(new ReluLayer());  </br>

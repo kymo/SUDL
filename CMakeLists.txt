@@ -1,20 +1,27 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(SUDL)
 
-include_directories(matrix)
-include_directories(layers)
-include_directories(utils)
-include_directories(net)
+IF(CMAKE_COMPILER_IS_GNUCXX)
+	ADD_compile_options(-std=c++11)
+	MESSAGE(STATUS "optional:-std=c++11")   
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-aux_source_directory(./layers DIR_SRCS)
-add_library(Lib ${DIR_SRCS})
+INCLUDE_DIRECTORIES(matrix)
+INCLUDE_DIRECTORIES(layers)
+INCLUDE_DIRECTORIES(utils)
+INCLUDE_DIRECTORIES(net)
 
-aux_source_directory(./example/wordseg WS_SRCS)
-add_executable(wordseg ${WS_SRCS})
-target_link_libraries(wordseg Lib)
+AUX_SOURCE_DIRECTORY(./layers DIR_SRCS)
+ADD_LIBRARY(Lib ${DIR_SRCS})
 
-aux_source_directory(./example/digital_recognition DR_SRCS)
-add_executable(dr ${DR_SRCS})
-target_link_libraries(dr Lib)
+AUX_SOURCE_DIRECTORY(./example/wordseg WS_SRCS)
+ADD_EXECUTABLE(wordseg ${WS_SRCS})
+TARGET_LINK_LIBRARIES(wordseg Lib)
 
+AUX_SOURCE_DIRECTORY(./example/digital_recognition DR_SRCS)
+ADD_EXECUTABLE(dr ${DR_SRCS})
+TARGET_LINK_LIBRARIES(dr Lib)
+
+
+SET(CMAKE_EXE_LINKER_FLAGS, "-pg -w -DDEBUGALL")
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/output/bin)

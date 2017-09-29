@@ -10,9 +10,9 @@ using namespace sub_dl;
 
 std::vector<int> REFER(int n, ...) {
     std::vector<int> ret;
-	if (n == 0) {
-		return ret;
-	}
+    if (n == 0) {
+        return ret;
+    }
 
     va_list args;
     va_start(args, n);
@@ -66,22 +66,22 @@ void load_data(const char*file_name,
 int main() {
     
     Graph *graph = new Graph();
-	int input_1 = graph->_add_node(new DataFeedLayer(), REFER(0));
+    int input_1 = graph->_add_node(new DataFeedLayer(), REFER(0));
     int emb_id = graph->_add_node(new WordEmbeddingLayer(14), 
-		REFER(1, input_1)); // input_2));
+        REFER(1, input_1)); // input_2));
     int lstm_id = graph->_add_node(new LstmCell(14, 16, true), REFER(1, emb_id)); 
     int seq_full_id = graph->_add_node(new SeqFullConnSoftmaxLayer(16, 4), REFER(1, lstm_id));
-	int loss_layer = graph->_add_node(new SeqCrossEntropyLossLayer(), REFER(1, seq_full_id));
+    int loss_layer = graph->_add_node(new SeqCrossEntropyLossLayer(), REFER(1, seq_full_id));
     
-	std::vector<std::vector<matrix_double> > train_x_features;
+    std::vector<std::vector<matrix_double> > train_x_features;
     std::vector<matrix_double> train_y_labels;
     load_data("train_text.seg.10w", train_x_features, train_y_labels);
     int _max_epoch_cnt = 1000;
     int batch_size = 50;
     int tot = 500;
-	clock_t startTime,endTime;
+    clock_t startTime,endTime;
     for (int epoch = 0; epoch < _max_epoch_cnt; epoch++) {
-		startTime = clock();
+        startTime = clock();
         for (int i = 0; i < tot / batch_size; i++) {
             double cost = 0.0;
             std::string val1, val2;
@@ -92,11 +92,11 @@ int main() {
                 batch_x_features.push_back(train_x_features[j]);
                 batch_y_labels.push_back(train_y_labels[j]);
             }
-        	graph->_run(batch_x_features, batch_y_labels, 4);
-		}
-		endTime = clock();
-		std::cout << "Totle Time : " <<(double)(endTime - startTime) * 1000 / CLOCKS_PER_SEC << "ms" << std::endl;
+            graph->_run(batch_x_features, batch_y_labels, 4);
+        }
+        endTime = clock();
+        std::cout << "Totle Time : " <<(double)(endTime - startTime) * 1000 / CLOCKS_PER_SEC << "ms" << std::endl;
     }
 
-	return 0;
+    return 0;
 }

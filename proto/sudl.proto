@@ -1,0 +1,19 @@
+package lm; 
+
+message LayerParam {
+	required string name = 1;
+	required string type = 2;
+	required string top = 4;
+	repeated string bottoms = 3;
+
+	optional bool use_peephole = 5 [default = false];
+	optional int32 input_dim = 6;
+	optional int32 output_dim = 7;
+
+}
+
+message Net {
+	required string name = 1;
+	repeated LayerParam layer = 2;
+}
+

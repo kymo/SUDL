@@ -13,6 +13,7 @@
 #define SEQ_LOSS_LAYER_H
 
 #include "layer.h"
+#include "loss_layer.h"
 
 namespace sub_dl {
 
@@ -55,19 +56,13 @@ public:
     void _clear_gradient() {}
 };
 
-class SeqMeanSquareLossLayer : public Layer {
+class SeqMeanSquareLossLayer : public LossLayer {
 
 public:
-    matrix_double _label;
-
     SeqMeanSquareLossLayer() {
         _type = SEQ_LOSS;
     }
     
-    void _set_label(const matrix_double& label) {
-        _label = label;
-    }
-
     void _forward(Layer* pre_layer) {        
         std::vector<matrix_double>().swap(_data);
         _seq_len = pre_layer->_seq_len;
@@ -100,19 +95,13 @@ public:
     void _clear_gradient() {}
 };
 
-class SeqCrossEntropyLossLayer : public Layer {
+class SeqCrossEntropyLossLayer : public LossLayer {
 
 public:
-    matrix_double _label;
-
     SeqCrossEntropyLossLayer() {
         _type = SEQ_LOSS;
     }
     
-    void _set_label(const matrix_double& label) {
-        _label = label;
-    }
-
     void _forward(Layer* pre_layer) {        
         std::vector<matrix_double>().swap(_data);
         _seq_len = pre_layer->_seq_len;

@@ -20,14 +20,14 @@
 
 namespace sub_dl {
 
-#define DEBUG 0
-#define WARN 1
-#define NOTICE 2
-#define FATAL 3
-#define DEBUG_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(DEBUG, fmt, ##__VA_ARGS__)
-#define WARN_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(WARN, fmt, ##__VA_ARGS__)
-#define NOTICE_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(NOTICE, fmt, ##__VA_ARGS__)
-#define FATAL_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(FATAL, fmt, ##__VA_ARGS__)
+#define DEBUGs 0
+#define WARNs 1
+#define NOTICEs 2
+#define FATALs 3
+#define DEBUG_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(DEBUGs, fmt, ##__VA_ARGS__)
+#define WARN_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(WARNs, fmt, ##__VA_ARGS__)
+#define NOTICE_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(NOTICEs, fmt, ##__VA_ARGS__)
+#define FATAL_LOG(fmt, ...) SubLogger<std::string>::_get_instance()->_write_log(FATALs, fmt, ##__VA_ARGS__)
 
 
 template <typename T>
@@ -45,16 +45,16 @@ public:
         char log_line[MAX_LOG_LEN];
         log_line[0] = '\0';
         switch (log_type) {
-        case DEBUG:
+        case DEBUGs:
             strcat(log_line, " [DEBUG] ");
             break;
-        case WARN:
+        case WARNs:
             strcat(log_line, " [WARNING] ");
             break;
-        case NOTICE:
+        case NOTICEs:
             strcat(log_line, " [NOTICE] ");
             break;
-        case FATAL:
+        case FATALs:
             strcat(log_line, " [FATAL] ");
             break;
         default:

@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include "sudl.pb.h"
 #include <map>
 
 using namespace sub_dl;
@@ -22,6 +23,7 @@ std::vector<int> REFER(int n, ...) {
     }
     return ret;
 }
+
 #define SAMPLE_SEP ";"
 #define FEATURE_SEP " "
 #define LABEL_SEP " "
@@ -66,14 +68,17 @@ void load_data(const char*file_name,
 int main() {
     
     Graph *graph = new Graph();
+    /*
     int input_1 = graph->_add_node(new DataFeedLayer(), REFER(0));
     int emb_id = graph->_add_node(new WordEmbeddingLayer(14), 
         REFER(1, input_1)); // input_2));
     int lstm_id = graph->_add_node(new LstmCell(14, 16, true), REFER(1, emb_id)); 
     int seq_full_id = graph->_add_node(new SeqFullConnSoftmaxLayer(16, 4), REFER(1, lstm_id));
     int loss_layer = graph->_add_node(new SeqCrossEntropyLossLayer(), REFER(1, seq_full_id));
+    */
+    graph->_read_from_file("1.prototxt");
     
-    std::vector<std::vector<matrix_double> > train_x_features;
+	std::vector<std::vector<matrix_double> > train_x_features;
     std::vector<matrix_double> train_y_labels;
     load_data("train_text.seg.10w", train_x_features, train_y_labels);
     int _max_epoch_cnt = 1000;
@@ -97,6 +102,5 @@ int main() {
         endTime = clock();
         std::cout << "Totle Time : " <<(double)(endTime - startTime) * 1000 / CLOCKS_PER_SEC << "ms" << std::endl;
     }
-
     return 0;
 }

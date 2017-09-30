@@ -35,8 +35,9 @@
 #include "full_conn_softmax_layer.h"
 #include "active_layer.h"
 #include "loss_layer.h"
-#include "util.h"
 #include <queue>
+#include "sudl.pb.h"
+#include "layer_factory.h"
 
 namespace sub_dl {
 
@@ -85,6 +86,8 @@ typedef struct node {
 class Graph {
 
 private:
+
+    std::map<std::string, int> _name_id_map;
 
     std::map<int, std::vector<int> > _edges;
     std::map<int, std::vector<int> > _reverse_edges;
@@ -351,9 +354,37 @@ public:
         }
     }
 
+    bool _read_from_file(const char*file_name) {
 
-
+        lm::Net net;
+        read_proto_from_txt_file<lm::Net>(file_name, &net);
+        for (int i = 0; i < net.layer_size(); i++) {
+            const lm::LayerParam &layer_param = net.layer(i);
+            // Layer* layer = LayerFactory::_get_instance()->_produce(layer_param);
+            Layer* layer = CREATER_LAYER(layer_param);
+            std::vector<int> pre_layer_ids;
+            // bottoms
+            for (int j = 0; j < layer_param.bottoms_size(); j++) {
+                const std::string& bottom_layer_name = layer_param.bottoms(j);
+                std::cout << "bottom" << bottom_layer_name << std::endl;
+                if (_name_id_map.find(bottom_layer_name) == _name_id_map.end()) {
+                    std::cout << "Error when read prototxt file, layer must be in order!" << std::endl;
+                    return false;
+                }
+                pre_layer_ids.push_back(_name_id_map[bottom_layer_name]);
+            }
+            int id = _add_node(layer, pre_layer_ids);
+            if (_name_id_map.find(layer_param.top()) != _name_id_map.end()) {
+                std::cout << "Error when read prototxt file, layer top must be different!" << std::endl;
+                return false;
+            }
+            std::cout << "TOP" << layer_param.top() << std::endl;
+            _name_id_map[layer_param.top()] = id;
+        }
+        return true;
+    }
 };
+
 }
 
 #endif

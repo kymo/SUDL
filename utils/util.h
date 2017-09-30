@@ -5,8 +5,29 @@
 #include <vector>
 #include <math.h>
 #include "matrix.h"
+#include <stdint.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <google/protobuf/io/coded_stream.h>  
+#include <google/protobuf/io/zero_copy_stream_impl.h>  
+#include <google/protobuf/text_format.h> 
+
+using google::protobuf::io::FileInputStream;
+using google::protobuf::Message;
 
 namespace sub_dl {
+
+template <typename T>
+bool read_proto_from_txt_file(const char* filename, T* proto) {  
+	int fd = open(filename, O_RDONLY);  
+	FileInputStream* input = new FileInputStream(fd);  
+	bool success = google::protobuf::TextFormat::Parse(input, proto);  
+	delete input;  
+	close(fd);  
+	return success;  
+}  
 
 template <typename T>
 static int merge(const Matrix<T>& output_val) {

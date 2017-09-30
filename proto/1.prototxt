@@ -1,0 +1,41 @@
+name: "test"
+layer {
+	name: "DataFeedLayer"
+	type: "DataFeedLayer"
+	top: "input_data"
+}
+
+layer {
+	name: "WordEmbeddingLayer"
+	type: "WordEmbeddingLayer"
+	top: "emb1"
+	bottoms: "input_data"
+	output_dim: 14
+}
+
+layer {
+	name: "LstmCell"
+	type: "LstmCell"
+	top: "lstm1"
+	bottoms: "emb1"
+	input_dim: 14
+	output_dim: 16
+	use_peephole: false
+}
+
+layer {
+	name: "SeqFullConnSoftmaxLayer"
+	type: "SeqFullConnSoftmaxLayer"
+	top: "seqsoftmax1"
+	bottoms: "lstm1"
+	input_dim: 16
+	output_dim: 4
+}
+
+layer {
+	name: "SeqCrossEntropyLossLayer"
+	type: "SeqCrossEntropyLossLayer"
+	top: "loss"
+	bottoms: "seqsoftmax1"
+}
+

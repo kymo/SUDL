@@ -1,15 +1,44 @@
 package lm; 
 
+message RnnCellParam {
+	required int32 input_dim = 1;
+	required int32 output_dim = 2;
+	optional bool use_peephole = 3 [default = false];
+}
+
+message ConvParam {
+	required int32 input_dim = 1;
+	required int32 output_dim = 2;
+	required int32 kernel_x_dim = 3;
+	required int32 kernel_y_dim = 4;
+	required int32 feature_x_dim = 5;
+	required int32 feature_y_dim = 6;
+}
+
+message PoolParam {
+	required int32 input_dim = 1;
+	required int32 output_dim = 2;
+	required int32 pooling_x_dim = 3;
+	required int32 pooling_y_dim = 4;
+	required int32 feature_x_dim = 5;
+	required int32 feature_y_dim = 6;
+}
+
+message FcParam {
+	required int32 input_dim = 1;
+	required int32 output_dim = 2;
+}
+
 message LayerParam {
 	required string name = 1;
 	required string type = 2;
 	required string top = 4;
 	repeated string bottoms = 3;
 
-	optional bool use_peephole = 5 [default = false];
-	optional int32 input_dim = 6;
-	optional int32 output_dim = 7;
-
+	optional RnnCellParam rnn_cell_param = 5;
+	optional ConvParam conv_param = 6;
+	optional PoolParam pool_param = 7;
+	optional FcParam fc_param = 8;
 }
 
 message Net {

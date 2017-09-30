@@ -21,8 +21,8 @@ class FullConnSoftmaxLayer : public BaseFullConnLayer {
 
 public:
     virtual ~FullConnSoftmaxLayer() {}
-    FullConnSoftmaxLayer(int input_dim, int output_dim) :
-        BaseFullConnLayer(input_dim, output_dim) {
+    FullConnSoftmaxLayer(const lm::FcParam& fc_param) : 
+        BaseFullConnLayer(fc_param) {
     }
     
     void _forward(Layer* pre_layer);

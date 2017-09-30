@@ -98,7 +98,8 @@ public:
     double _eta;
     double _clip_gra;
 
-    LstmCell(int input_dim, int output_dim, bool use_peephole);
+    LstmCell(const lm::RnnCellParam& lstm_param);
+	// int input_dim, int output_dim, bool use_peephole);
 
     /* 
     * @brief forward function fo basic rnn cell with tanh

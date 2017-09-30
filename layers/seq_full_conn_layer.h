@@ -25,10 +25,10 @@ public:
     matrix_double _delta_seq_full_weights;
     matrix_double _delta_seq_full_bias;
     
-    SeqFullConnLayer(int input_dim, int output_dim) {
+    SeqFullConnLayer(const lm::FcParam& fc_param) {
         _type = SEQ_FULL;
-        _input_dim = input_dim;
-        _output_dim = output_dim;
+        _input_dim = fc_param.input_dim();
+        _output_dim = fc_param.output_dim();
 
         _seq_full_weights.resize(_input_dim, _output_dim);
         _seq_full_bias.resize(1, _output_dim);

@@ -44,16 +44,34 @@ public:
         if (layer_type == "DataFeedLayer") {
 			layer = new DataFeedLayer();
 		} else if (layer_type == "WordEmbeddingLayer") {
-			layer = new WordEmbeddingLayer(layer_param.output_dim());
+			layer = new WordEmbeddingLayer(layer_param.fc_param().output_dim());
 		} else if (layer_type == "LstmCell") {
-			layer = new LstmCell(layer_param.input_dim(),
-				layer_param.output_dim(), layer_param.use_peephole());
+			layer = new LstmCell(layer_param.rnn_cell_param());
+			// layer_param.input_dim(),
+			//	layer_param.output_dim(), layer_param.use_peephole());
 		} else if (layer_type == "SeqFullConnSoftmaxLayer") {
-			layer = new SeqFullConnSoftmaxLayer(layer_param.input_dim(),
-				layer_param.output_dim());
+			layer = new SeqFullConnSoftmaxLayer(layer_param.fc_param());
+			//layer_param.input_dim(),
+			//	layer_param.output_dim());
 		} else if (layer_type == "SeqCrossEntropyLossLayer") {
             layer = new SeqCrossEntropyLossLayer();
-        }
+        } else if (layer_type == "ConvLayer") {
+			layer = new ConvLayer(layer_param.conv_param());
+		} else if (layer_type == "PoolingLayer") {
+			layer = new PoolingLayer(layer_param.pool_param());
+		} else if (layer_type == "ReluLayer") {
+			layer = new ReluLayer();
+		} else if (layer_type == "FlattenLayer") {
+			layer = new FlattenLayer();
+		} else if (layer_type == "FullConnLayer") {
+			layer = new FullConnLayer(layer_param.fc_param());
+		} else if (layer_type == "SigmoidLayer") {
+			layer = new SigmoidLayer();
+		} else if (layer_type == "FullConnSoftmaxLayer") {
+			layer = new FullConnSoftmaxLayer(layer_param.fc_param());
+		} else if (layer_type == "CrossEntropyLossLayer") {
+			layer = new CrossEntropyLossLayer();
+		}
         return layer;
         // return std::shared_ptr<Layer>(layer);
     }

@@ -27,9 +27,12 @@ public:
         _pooling_type = pooling_type;
     }
     
-    PoolingLayer(int input_dim, int output_dim, 
+    PoolingLayer(const lm::PoolParam& pool_param);
+	/*
+	int input_dim, int output_dim, 
         int pooling_x_dim, int pooling_y_dim, 
         int feature_x_dim, int feature_y_dim);
+	*/
 
     void display();
     // forward

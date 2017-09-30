@@ -23,8 +23,8 @@ public:
 
     virtual ~FullConnLayer() {}
 
-    FullConnLayer(int input_dim, int output_dim) :
-        BaseFullConnLayer(input_dim, output_dim) {
+    FullConnLayer(const lm::FcParam& fc_param) : 
+        BaseFullConnLayer(fc_param) {
     }
     void _forward(Layer* pre_layer);
     void _backward(Layer* nxt_layer);

@@ -14,16 +14,17 @@
 
 namespace sub_dl {
 
-PoolingLayer::PoolingLayer(int input_dim, int output_dim, 
+PoolingLayer::PoolingLayer(const lm::PoolParam& pool_param) {
+	/*
+	int input_dim, int output_dim, 
     int pooling_x_dim, int pooling_y_dim,
-    int feature_x_dim, int feature_y_dim) {
-
-    _input_dim = input_dim;
-    _output_dim = output_dim;
-    _pooling_x_dim = pooling_x_dim;
-    _pooling_y_dim = pooling_y_dim;
-    _feature_x_dim = feature_x_dim;
-    _feature_y_dim = feature_y_dim;
+    int feature_x_dim, int feature_y_dim)*/
+    _input_dim = pool_param.input_dim();
+    _output_dim = pool_param.output_dim();
+    _pooling_x_dim = pool_param.pooling_x_dim();
+    _pooling_y_dim = pool_param.pooling_y_dim();
+    _feature_x_dim = pool_param.feature_x_dim();
+    _feature_y_dim = pool_param.feature_y_dim();
     _type = POOL;
 
 }

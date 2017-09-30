@@ -178,6 +178,7 @@ public:
                 _gradient_weights_check(batch_x, batch_y, layer->_full_conn_weights, layer->_delta_full_conn_weights);
 
             }
+            std::cout << std::endl;
         }
     }
     
@@ -194,7 +195,7 @@ public:
                 double f2 = 0.0;
                 for (int k = 0; k < batch_x.size(); k++) {    
                     matrix_double label;
-                    label_encode(batch_y[k], label, 4);
+                    label_encode(batch_y[k], label, 10);
                     _set_input(batch_x[k]);
                     _set_label(label);
                     f1 += _forward_compute();
@@ -202,7 +203,7 @@ public:
                 weights[i][j] = v - 1.0e-4;
                 for (int k = 0; k < batch_x.size(); k++) {
                     matrix_double label;
-                    label_encode(batch_y[k], label, 4);
+                    label_encode(batch_y[k], label, 10);
                     _set_input(batch_x[k]);
                     _set_label(label);
                     f2 += _forward_compute(); 

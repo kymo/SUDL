@@ -40,10 +40,12 @@ public:
     virtual ~ConvLayer() {}
     ConvLayer() {}
 
-    ConvLayer(int input_dim, int output_dim, 
+    ConvLayer(const lm::ConvParam& conv_param);
+	/*
+		int input_dim, int output_dim, 
         int kernel_x_dim, int kernel_y_dim, 
         int feature_x_dim, int feature_y_dim); 
-    
+    */
     void display();
 
     /*

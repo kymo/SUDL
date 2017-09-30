@@ -15,19 +15,14 @@
 
 namespace sub_dl {
 
-ConvLayer::ConvLayer(int input_dim, int output_dim, 
-    int kernel_x_dim, int kernel_y_dim, 
-    int feature_x_dim, int feature_y_dim) {
+ConvLayer::ConvLayer(const lm::ConvParam& conv_param) {
 
-    _input_dim = input_dim;
-    _output_dim = output_dim;
-    _kernel_x_dim = kernel_x_dim;
-    _kernel_y_dim = kernel_y_dim;
-    _feature_x_dim = feature_x_dim;
-    _feature_y_dim = feature_y_dim;
-
-    _feature_x_dim = feature_x_dim;
-    _feature_y_dim = feature_y_dim;
+    _input_dim = conv_param.input_dim();
+    _output_dim = conv_param.output_dim();
+    _kernel_x_dim = conv_param.kernel_x_dim();
+    _kernel_y_dim = conv_param.kernel_y_dim();
+    _feature_x_dim = conv_param.feature_x_dim();
+    _feature_y_dim = conv_param.feature_y_dim();
 
     _conv_kernels.resize(_input_dim, _output_dim);
     _delta_conv_kernels.resize(_input_dim, _output_dim);

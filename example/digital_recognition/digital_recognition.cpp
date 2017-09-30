@@ -1,8 +1,8 @@
 
 #include <iostream>
 #include <fstream>
-#include "net_wrapper.h"
-
+// #include "net_wrapper.h"
+#include "graph.h"
 #define SAMPLE_SEP ";"
 #define FEATURE_SEP " "
 #define LABEL_SEP " "
@@ -47,6 +47,7 @@ void digital_recognition(int argc, char*argv[]) {
     std::vector<matrix_double> train_y_labels;
     load_mnist_data(argv[1], train_x_features, train_y_labels);
     
+    /*
     std::vector<Layer*> layers;
     layers.push_back(new ConvLayer(1, 6, 5, 5, 24, 24));
     layers.push_back(new ReluLayer());
@@ -59,14 +60,22 @@ void digital_recognition(int argc, char*argv[]) {
     layers.push_back(new FlattenLayer());
     layers.push_back(new FullConnLayer(90, 32));
     layers.push_back(new SigmoidLayer());
-    layers.push_back(new FullConnLayer(32, 10));
-    layers.push_back(new SigmoidLayer());
-    
-    NetWrapper<MeanSquareLossLayer> *cnet = new NetWrapper<MeanSquareLossLayer>(10);
+    layers.push_back(new FullConnSoftmaxLayer(32, 10));
+
+
+    //layers.push_back(new FullConnLayer(32, 10));
+    //layers.push_back(new SigmoidLayer());
+    //NetWrapper<MeanSquareLossLayer> *cnet = new NetWrapper<MeanSquareLossLayer>(10);
+    NetWrapper<CrossEntropyLossLayer> *cnet = new NetWrapper<CrossEntropyLossLayer>(10);
     cnet->_build_net(layers);
-    int _max_epoch_cnt = 1000;
-    int batch_size = 50;
-    int tot = 10000;
+    */
+    Graph* graph = new Graph();
+    graph->_read_from_file("digital.prototxt");
+
+    
+    int _max_epoch_cnt = 10;
+    int batch_size = 5;
+    int tot = 1000;
     for (int epoch = 0; epoch < _max_epoch_cnt; epoch++) {
         for (int i = 0; i < tot / batch_size; i++) {
             double cost = 0.0;
@@ -78,20 +87,23 @@ void digital_recognition(int argc, char*argv[]) {
                 batch_x_features.push_back(train_x_features[j]);
                 batch_y_labels.push_back(train_y_labels[j]);
             }
-            cost = cnet->_train(batch_x_features, batch_y_labels);
-			int right = 0;
-			std::vector<int> labels;
-			for (int j = 0; j < batch_x_features.size(); j++) {
-				std::vector<int>().swap(labels);
-				cnet->_predict(batch_x_features[j], labels);
-				if (batch_y_labels[j][0][0] == labels[0]) {
-					right += 1;
-				}
-			}
-			std::cout << batch_y_labels[0][0][0] << " " << labels[0] << std::endl;
-			std::cout << "Cost " << cost << ", Tot " << batch_x_features.size() << ", Right " << 
-				right << " , Ratio " << right * 1.0 / batch_x_features.size() << std::endl;
-		}
+            // cost = cnet->_train(batch_x_features, batch_y_labels);
+            graph->_run(batch_x_features, batch_y_labels, 10);
+            int right = 0;
+            /*
+            std::vector<int> labels;
+            for (int j = 0; j < batch_x_features.size(); j++) {
+                std::vector<int>().swap(labels);
+                cnet->_predict(batch_x_features[j], labels);
+                if (batch_y_labels[j][0][0] == labels[0]) {
+                    right += 1;
+                }
+            }
+            std::cout << batch_y_labels.back()[0][0] << " " << labels[0] << std::endl;
+            std::cout << "Cost " << cost << ", Tot " << batch_x_features.size() << ", Right " << 
+                right << " , Ratio " << right * 1.0 / batch_x_features.size() << std::endl;
+            */
+        }
     }    
 }
 

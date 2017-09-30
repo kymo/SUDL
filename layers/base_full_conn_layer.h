@@ -27,15 +27,15 @@ public:
     matrix_double _pre_layer_data;
     BaseFullConnLayer() {}
     
-    BaseFullConnLayer(int input_dim, int output_dim) {
-        _input_dim = input_dim;
-        _output_dim = output_dim;
-        _full_conn_weights.resize(input_dim, output_dim);
-        _full_conn_bias.resize(1, output_dim);
+    BaseFullConnLayer(const lm::FcParam& fc_param) {
+        _input_dim = fc_param.input_dim();
+        _output_dim = fc_param.output_dim();
+        _full_conn_weights.resize(_input_dim, _output_dim);
+        _full_conn_bias.resize(1, _output_dim);
         _full_conn_weights.assign_val();
         _full_conn_bias.assign_val();
-        _delta_full_conn_weights.resize(input_dim, output_dim);
-        _delta_full_conn_bias.resize(1, output_dim);
+        _delta_full_conn_weights.resize(_input_dim, _output_dim);
+        _delta_full_conn_bias.resize(1, _output_dim);
         _type = FULL_CONN;
     }
 

@@ -17,9 +17,11 @@
 
 namespace sub_dl {
 
-LstmCell::LstmCell(int input_dim, int output_dim, bool use_peephole) {
-    _input_dim = input_dim;
-    _output_dim = output_dim;
+LstmCell::LstmCell(const lm::RnnCellParam& lstm_param) {
+    _input_dim = lstm_param.input_dim();
+    _output_dim = lstm_param.output_dim();
+    _use_peephole = lstm_param.use_peephole();
+    
 
     _type = LSTM_CELL;
 
@@ -55,9 +57,7 @@ LstmCell::LstmCell(int input_dim, int output_dim, bool use_peephole) {
     _cell_hidden_weights.assign_val();
     _cell_bias.assign_val();
 
-    _use_peephole = use_peephole;
-    
-    if (use_peephole) {
+    if (_use_peephole) {
         _fg_cell_weights.resize(_output_dim, _output_dim);
         _og_cell_weights.resize(_output_dim, _output_dim);
         _ig_cell_weights.resize(_output_dim, _output_dim);

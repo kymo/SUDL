@@ -18,6 +18,7 @@
 #include "matrix.h"
 #include "active_func.h"
 #include "sub_log.h"
+#include "sudl.pb.h"
 
 namespace sub_dl {
 

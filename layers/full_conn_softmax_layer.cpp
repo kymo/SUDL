@@ -31,11 +31,14 @@ void FullConnSoftmaxLayer::_backward(Layer* nxt_layer) {
         std::cerr << "Conv or Pooling before full-connected not supported yet!" << std::endl;
         exit(1);
     }
-	// double val = (_data[0].dot_mul(nxt_layer->_errors[0])).sum();
+    // double val = (_data[0].dot_mul(nxt_layer->_errors[0])).sum();
+    //matrix_double error = nxt_layer->_errors[0] - _data[0] * nxt_layer->_errors[0].sum();
+    //error = error.dot_mul(_data[0]);
+    // matrix_double error = _data[0].dot_mul(nxt_layer->_errors[0] - val); 
     matrix_double error = nxt_layer->_errors[0] - _data[0] * nxt_layer->_errors[0].sum();
-    error = error.dot_mul(_data[0]);
-	// matrix_double error = _data[0].dot_mul(nxt_layer->_errors[0] - val); 
-	_errors.push_back(error);
+
+    _errors.push_back(error);
+    
     _delta_full_conn_weights.add(_pre_layer_data._T() * _errors[0]);
     _delta_full_conn_bias.add(_errors[0]);
 

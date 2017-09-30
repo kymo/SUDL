@@ -2,7 +2,9 @@
 
 #include <iostream>
 #include <fstream>
-#include "net_wrapper.h"
+// #include "net_wrapper.h"
+#include "graph.h"
+#include <time.h>
 
 #define SAMPLE_SEP ";"
 #define FEATURE_SEP " "
@@ -48,27 +50,32 @@ void load_data(const char*file_name,
 }
 
 void test_rnn() {
-    
+
+	/*
     std::vector<Layer*> layers;
     layers.push_back(new WordEmbeddingLayer(14));
-    layers.push_back(new BiCellWrapper<RnnCell>(14, 16, BI_RNN_CELL));
-    layers.push_back(new BiCellWrapper<GruCell>(16, 16, BI_GRU_CELL));
-    layers.push_back(new BiCellWrapper<LstmCell>(16, 32, true, true, BI_LSTM_CELL));
+	layers.push_back(new LstmCell(14, 16, true));
+    // layers.push_back(new BiCellWrapper<RnnCell>(14, 16, BI_RNN_CELL));
+    // layers.push_back(new BiCellWrapper<GruCell>(16, 16, BI_GRU_CELL));
+    /// layers.push_back(new BiCellWrapper<LstmCell>(16, 32, true, true, BI_LSTM_CELL));
     // layers.push_back(new SeqFullConnLayer(32, 4));
     // layers.push_back(new SeqActiveLayer());
 	// NetWrapper<SeqLossLayer>*rnet = new NetWrapper<SeqLossLayer>(4);
-    layers.push_back(new SeqFullConnSoftmaxLayer(32, 4));
+    layers.push_back(new SeqFullConnSoftmaxLayer(16, 4));
 	NetWrapper<SeqCrossEntropyLossLayer>*rnet = new NetWrapper<SeqCrossEntropyLossLayer>(4);
     rnet->_build_net(layers);
-
+	*/
+	Graph* graph = new Graph();
+	graph->_read_from_file("wordseg.prototxt");
     std::vector<std::vector<matrix_double> > train_x_features;
     std::vector<matrix_double> train_y_labels;
-    load_data("train_text.seg.50w", train_x_features, train_y_labels);
-	std::cout << "done" << std::endl;
+    load_data("train_text.seg.10w", train_x_features, train_y_labels);
     int _max_epoch_cnt = 1000;
     int batch_size = 50;
-    int tot = 500000;
+    int tot = 500;
+	clock_t startTime,endTime;
     for (int epoch = 0; epoch < _max_epoch_cnt; epoch++) {
+		startTime = clock();
         for (int i = 0; i < tot / batch_size; i++) {
             double cost = 0.0;
             std::string val1, val2;
@@ -79,20 +86,12 @@ void test_rnn() {
                 batch_x_features.push_back(train_x_features[j]);
                 batch_y_labels.push_back(train_y_labels[j]);
             }
-            cost = rnet->_train(batch_x_features, batch_y_labels);
-            std::vector<int> labels;
-            rnet->_predict(batch_x_features[0], labels);
-            for (int i = 0; i < labels.size(); i++) {
-                std::cout << labels[i] << " ";
-            }
-            std::cout << std::endl;
-            for (int i = 0; i < batch_y_labels[0]._x_dim; i++) {
-                std::cout << batch_y_labels[0][i][0] << " ";
-            }
-            std::cout << std::endl;
-            DEBUG_LOG("Cost %lf %s %s", cost, val1.c_str(), val2.c_str());
-        }
-    }    
+            // cost = rnet->_train(batch_x_features, batch_y_labels);
+        	graph->_run(batch_x_features, batch_y_labels, 4); 
+		}
+		endTime = clock();
+		std::cout << "Totle Time : " <<(double)(endTime - startTime) * 1000 / CLOCKS_PER_SEC << "ms" << std::endl;
+    }
 }
 
 int main() {

@@ -214,7 +214,6 @@ public:
         }
     }
 
-
     // add a node into graph, and build the edges between the node and
     // the other nodes in id_vec
     int _add_node(Layer* layer, std::vector<int> id_vec) {
@@ -327,13 +326,8 @@ public:
         return cost;
     }
 
-
-
     void _backward_compute() {
-        // id ==
-        
         std::map<int, int> node_ins(_reverse_node_ins.begin(), _reverse_node_ins.end());
-        
         for (auto it = node_ins.begin(); it != node_ins.end(); it++) {
             if (it->second == 0) {
                 _queue.push(it->first);
@@ -364,10 +358,8 @@ public:
             // Layer* layer = LayerFactory::_get_instance()->_produce(layer_param);
             Layer* layer = CREATER_LAYER(layer_param);
             std::vector<int> pre_layer_ids;
-            // bottoms
             for (int j = 0; j < layer_param.bottoms_size(); j++) {
                 const std::string& bottom_layer_name = layer_param.bottoms(j);
-                std::cout << "bottom" << bottom_layer_name << std::endl;
                 if (_name_id_map.find(bottom_layer_name) == _name_id_map.end()) {
                     std::cout << "Error when read prototxt file, layer must be in order!" << std::endl;
                     return false;
@@ -379,7 +371,6 @@ public:
                 std::cout << "Error when read prototxt file, layer top must be different!" << std::endl;
                 return false;
             }
-            std::cout << "TOP" << layer_param.top() << std::endl;
             _name_id_map[layer_param.top()] = id;
         }
         return true;

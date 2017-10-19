@@ -93,8 +93,7 @@ rnn.prototxt
 
 cnn.prototxt
 
-    name: "cnn"
-    
+    name: "cnn" 
     layer {
         name: "DataFeedLayer"
         type: "DataFeedLayer"

@@ -16,102 +16,77 @@ A light deep learning tools box by c++
 3. tanh
 
 **TODO**
-1. GPU supported
-2. network architecture configurable 
+1. GPU supported (No Gpu for testing :( )
+2. network architecture configurable by proto Done (protoc is needed to be installed first)
 
 **Compile**
 
-sh build.sh
+sh build.sh(cmake is needed)
 
 **Usage**
 
-1. ANN
-> layers.push_back(new FullConnLayer(4, 8));  </br>
-layers.push_back(new ReluLayer());  </br>
-layers.push_back(new FullConnLayer(8, 32));  </br>
-layers.push_back(new SigmoidLayer());  </br>
-layers.push_back(new FullConnLayer(32, 3));   </br>
-layers.push_back(new SigmoidLayer());  </br>
-NetWrapper\<MeanSquareLossLayer\> *ann = new NetWrapper\<MeanSquareLossLayer\>();  </br>
-ann->_build_net(layers); </br>
-ann->train(); </br>
+net architecture is built by proto file that you defined, just like what the examples do.
+rnn.prototxt
+name: "test"
+layer {
+    name: "DataFeedLayer"
+    type: "DataFeedLayer"
+    top: "input_data"
+}
 
-2. CNN
-> std::vector<Layer*> layers; </br>
-layers.push_back(new ConvLayer(1, 6, 5, 5, 24, 24)); </br>
-layers.push_back(new SigmoidLayer()); </br>
-layers.push_back(new PoolingLayer(6, 6, 2, 2, 12, 12)); </br>
-layers.push_back(new ConvLayer(6, 6, 5, 5, 8, 8)); </br>
-layers.push_back(new SigmoidLayer()); </br>
-layers.push_back(new PoolingLayer(6, 6, 2, 2, 4, 4)); </br>
-layers.push_back(new ConvLayer(6, 10, 2, 2, 3, 3)); </br>
-layers.push_back(new SigmoidLayer()); </br>
-layers.push_back(new FlatternLayer()); </br>
-layers.push_back(new FullConnLayer(90, 32)); </br>
-layers.push_back(new SigmoidLayer()); </br>
-layers.push_back(new FullConnLayer(32, 4)); </br>
-layers.push_back(new SigmoidLayer()); </br>
-NetWrapper\<MeanSquareLossLayer\> *cnn = new NetWrapper\<MeanSquareLossLayer\>(); </br>
-cnn->_build_net(layers); </br>
-cnn->train();
+layer {
+    name: "WordEmbeddingLayer"
+    type: "WordEmbeddingLayer"
+    top: "emb1"
+    bottoms: "input_data"
+    fc_param {
+        output_dim: 14
+        input_dim: 0
+    }
+}
 
-3. RNN 
+layer {
+    name: "LstmCell"
+    type: "LstmCell"
+    top: "lstm1"
+    bottoms: "emb1"
 
-3.1 singel layer
-> std::vector<Layer*> layers; </br>
-layers.push_back(new WordEmbeddingLayer(14)); </br>
-layers.push_back(new RnnCell(8, 16)); </br>
-layers.push_back(new SeqFullConnLayer(16, 4)); </br>
-layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
-rnet->_build_net(layers);  </br>
+    rnn_cell_param {
+        input_dim: 14
+        output_dim: 16
+        use_peephole: false
+    }
+}
 
-3.2 multi layers
-> std::vector<Layer*> layers; </br>
-layers.push_back(new WordEmbeddingLayer(14)); </br>
-layers.push_back(new RnnCell(8, 8)); </br>
-layers.push_back(new RnnCell(8, 16)); </br>
-layers.push_back(new SeqFullConnLayer(16, 4)); </br>
-layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
-rnet->_build_rnn(layers);  </br>
+layer {
+    name: "LstmCell1"
+    type: "LstmCell"
+    top: "lstm2"
+    bottoms: "lstm1"
+    rnn_cell_param {
+        input_dim: 16
+        output_dim: 16
+        use_peephole: true
+    }
+}
 
-> std::vector<Layer*> layers; </br>
-layers.push_back(new WordEmbeddingLayer(14)); </br>
-layers.push_back(new LstmCell(8, 8)); </br>
-layers.push_back(new LstmCell(8, 16)); </br>
-layers.push_back(new SeqFullConnLayer(16, 4)); </br>
-layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper\<SeqLossLayer\> *rnet = new ReccurentNet\<SeqLossLayer\>(4); </br>
-rnet->_build_net(layers);  </br>
+layer {
+    name: "SeqFullConnSoftmaxLayer"
+    type: "SeqFullConnSoftmaxLayer"
+    top: "seqsoftmax1"
+    bottoms: "lstm2"
+    fc_param {
+        input_dim: 16
+        output_dim: 4
+    }
+
+}
+layer {
+    name: "SeqCrossEntropyLossLayer"
+    type: "SeqCrossEntropyLossLayer"
+    top: "loss"
+    bottoms: "seqsoftmax1"
+}
 
 
-3.3 different layers
-> std::vector<Layer*> layers; </br>
-layers.push_back(new WordEmbeddingLayer(14)); </br>
-layers.push_back(new RnnCell(8, 8)); </br>
-layers.push_back(new LstmCell(8, 16)); </br>
-layers.push_back(new SeqFullConnLayer(16, 4)); </br>
-layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
-rnet->_build_net(layers);  </br>
-
-3.4 singel bi-directional rnn cell
->std::vector<Layer*> layers; </br>
-layers.push_back(new WordEmbeddingLayer(14)); </br>
-layers.push_back(new BiCellWrapper\<RnnCell\>(14, 16, BI_RNN_CELL)); </br>
-layers.push_back(new SeqFullConnLayer(16, 4)); </br>
-layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
-rnet->_build_net(layers);  </br>
-
-3.5 multi bi-directional rnn cells
->std::vector<Layer*> layers; </br>
-layers.push_back(new WordEmbeddingLayer(14)); </br>
-layers.push_back(new BiCellWrapper\<RnnCell\>(14, 16, BI_RNN_CELL)); </br>
-layers.push_back(new BiCellWrapper\<LstmCell\>(14, 16, true, true, BI_LSTM_CELL)); </br>
-layers.push_back(new SeqFullConnLayer(16, 4)); </br>
-layers.push_back(new SeqActiveLayer()); </br>
-NetWrapper\<SeqLossLayer\> *rnet = new NetWrapper\<SeqLossLayer\>(4); </br>
-rnet->_build_net(layers);  </br>
 

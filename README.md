@@ -26,6 +26,7 @@ sh build.sh(cmake is needed)
 **Usage**
 
 net architecture is built by proto file that you defined, just like what the examples do.
+
 rnn.prototxt
 
     name: "test"
@@ -90,3 +91,124 @@ rnn.prototxt
     }
 
 
+cnn.prototxt
+
+    name: "cnn"
+    
+    layer {
+        name: "DataFeedLayer"
+        type: "DataFeedLayer"
+        top: "input_data"
+    }
+
+    layer {
+        name: "ConvLayer1"
+        type: "ConvLayer"
+        bottoms: "input_data"
+        top: "conv1"
+
+        conv_param {
+            input_dim: 1
+            output_dim: 2
+            kernel_x_dim: 11
+            kernel_y_dim: 11
+            feature_x_dim: 18
+            feature_y_dim: 18
+        }
+
+    }
+
+    layer {
+        name: "ReluLayer1"
+        type: "ReluLayer"
+        bottoms: "conv1"
+        top: "relu1"
+    }
+
+    layer {
+        name: "PoolingLayer1"
+        type: "PoolingLayer"
+        bottoms: "relu1"
+        top: "pool1"
+
+        pool_param {
+            input_dim: 2
+            output_dim: 2
+            pooling_x_dim: 2
+            pooling_y_dim: 2
+            feature_x_dim: 9
+            feature_y_dim: 9
+        }
+
+    }
+
+    layer {
+        name: "ConvLayer2"
+        type: "ConvLayer"
+        bottoms: "pool1"
+        top: "conv2"
+
+        conv_param {
+            input_dim: 2
+            output_dim: 2
+            kernel_x_dim: 4
+            kernel_y_dim: 4
+            feature_x_dim: 6
+            feature_y_dim: 6
+        }
+    }
+
+    layer {
+        name: "ReluLayer2"
+        type: "ReluLayer"
+        bottoms: "conv2"
+        top: "relu2"
+    }
+
+
+    layer {
+        name: "FlattenLayer1"
+        type: "FlattenLayer"
+        bottoms: "relu2"
+        top: "flat1"
+    }
+
+    layer {
+        name: "FullConnLayer"
+        type: "FullConnLayer"
+        bottoms: "flat1"
+        top: "full1"
+
+        fc_param {
+            input_dim: 72
+            output_dim: 32
+        }
+    }
+
+    layer {
+        name: "SigmoidLayer"
+        type: "SigmoidLayer"
+        bottoms: "full1"
+        top: "sigmoid1"
+
+    }
+
+
+    layer {
+        name: "FullConnSoftmaxLayer"
+        type: "FullConnSoftmaxLayer"
+        bottoms: "sigmoid1"
+        top: "full2"
+
+        fc_param {
+            input_dim: 32
+            output_dim: 10
+        }
+    }
+
+    layer {
+        name: "loss"
+        type: "CrossEntropyLossLayer"
+        bottoms: "full2"
+        top: "cross"
+    }

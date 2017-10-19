@@ -27,6 +27,8 @@ sh build.sh(cmake is needed)
 
 net architecture is built by proto file that you defined, just like what the examples do.
 rnn.prototxt
+
+"""
 name: "test"
 layer {
     name: "DataFeedLayer"
@@ -87,6 +89,6 @@ layer {
     top: "loss"
     bottoms: "seqsoftmax1"
 }
-
+"""
 
 
